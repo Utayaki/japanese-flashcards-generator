@@ -1,0 +1,153 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --kanji-size: min(3rem, 7vw, 9vh);
+  --furigana-size: min(0.9rem, 2.5vw, 3vh);
+  --furigana-height: min(1.75rem, 4vw, 5vh);
+  --col-width: min(3rem, 7vw, 9vh);
+}
+
+html {
+  overflow: hidden;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  overflow: hidden;
+}
+
+.editor {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: auto;
+}
+
+.editor-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.characters-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: nowrap;
+  border-bottom: 3px solid #333;
+  padding-bottom: 0.35rem;
+  width: fit-content;
+  max-width: 100%;
+  cursor: text;
+}
+
+.char-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.furigana-spacer {
+  width: var(--col-width);
+  height: var(--furigana-height);
+  margin-bottom: 0.25rem;
+}
+
+.furigana-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--col-width);
+  height: var(--furigana-height);
+  margin-bottom: 0.25rem;
+  border-bottom: 1px dashed #aaa;
+}
+
+.furigana-input {
+  font-family: inherit;
+  font-size: var(--furigana-size);
+  text-align: center;
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  padding: 0.15rem 0.25rem;
+  color: #333;
+}
+
+.furigana-input::placeholder {
+  color: #bbb;
+  font-size: 0.75rem;
+}
+
+.furigana-input:focus {
+  background: #f5f5f5;
+  border-radius: 2px;
+}
+
+.char-display {
+  font-size: var(--kanji-size);
+  line-height: 1;
+  width: var(--col-width);
+  text-align: center;
+  user-select: none;
+}
+
+.main-input-column {
+  flex-shrink: 0;
+}
+
+.main-input-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--col-width);
+  height: var(--kanji-size);
+}
+
+.main-input {
+  font-family: inherit;
+  font-size: var(--kanji-size);
+  line-height: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  text-align: center;
+  caret-color: #333;
+  color: #333;
+}
+
+.main-input::placeholder {
+  color: #ccc;
+  font-size: var(--furigana-size);
+}
+
+.main-input:focus {
+  outline: 2px solid #ccc;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
