@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { filterJapanese, isJapaneseChar } from "./japanese.js";
 
 const MainInput = forwardRef(function MainInput(
@@ -7,75 +7,89 @@ const MainInput = forwardRef(function MainInput(
 ) {
   const inputRef = useRef(null);
   const isComposingRef = useRef(false);
-  const skipNextChangeRef = useRef(false);
+  const lastCompositionCommitRef = useRef(null);
+  const [draft, setDraft] = useState("");
 
   useImperativeHandle(ref, () => inputRef.current);
 
   function commitInput(value) {
     const chars = [...value].filter(isJapaneseChar);
-    if (chars.length === 0) return false;
+    if (chars.length === 0) {
+      setDraft("");
+      return false;
+    }
 
     onAddCharacters(chars);
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
+    setDraft("");
     return true;
   }
 
-  function handlePaste(e) {
-    e.preventDefault();
-    const pasted = filterJapanese(e.clipboardData.getData("text"));
-    if (pasted.length === 0) return;
+  function handlePaste(event) {
+    event.preventDefault();
+    const pasted = filterJapanese(event.clipboardData.getData("text"));
+    if (!pasted) return;
 
     onAddCharacters([...pasted]);
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
+    setDraft("");
   }
 
+  const visibleLength = Math.max(1, [...draft].length);
+
   return (
-    <div className="char-column main-input-column">
-      <div className="furigana-spacer" aria-hidden="true" />
-      <div className="main-input-slot">
+    <div className="character-unit composer-unit">
+      <div className="reading-area" aria-hidden="true" />
+      <div className="composer-shell">
         <input
           ref={inputRef}
           type="text"
           className="main-input"
+          value={draft}
+          size={visibleLength}
           placeholder="入力"
           aria-label="Japanese text input"
           autoComplete="off"
+          autoCapitalize="off"
           autoFocus
           spellCheck={false}
+          inputMode="text"
           onCompositionStart={() => {
             isComposingRef.current = true;
           }}
-          onCompositionEnd={(e) => {
+          onCompositionEnd={(event) => {
             isComposingRef.current = false;
-            const committed = commitInput(e.currentTarget.value);
-            if (committed) {
-              skipNextChangeRef.current = true;
-            }
+            const value = event.currentTarget.value;
+            const committed = commitInput(value);
+            lastCompositionCommitRef.current = committed ? value : null;
           }}
-          onChange={(e) => {
-            if (isComposingRef.current) return;
-            if (skipNextChangeRef.current) {
-              skipNextChangeRef.current = false;
+          onChange={(event) => {
+            const value = event.currentTarget.value;
+
+            // Some browsers emit one final change after compositionend. Ignore only
+            // that exact duplicate, never the user's next real input.
+            if (lastCompositionCommitRef.current === value) {
+              lastCompositionCommitRef.current = null;
               return;
             }
-            commitInput(e.target.value);
+            lastCompositionCommitRef.current = null;
+            setDraft(value);
+
+            // Direct Japanese keyboard input does not always produce a composition event.
+            if (!isComposingRef.current && [...value].some(isJapaneseChar)) {
+              commitInput(value);
+            }
           }}
-          onKeyDown={(e) => {
+          onKeyDown={(event) => {
             if (
-              e.key === "Backspace" &&
-              inputRef.current?.value === "" &&
+              event.key === "Backspace" &&
+              draft === "" &&
               !isComposingRef.current
             ) {
-              e.preventDefault();
+              event.preventDefault();
               onRemoveLast();
             }
           }}
           onPaste={handlePaste}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
         />
       </div>
     </div>
