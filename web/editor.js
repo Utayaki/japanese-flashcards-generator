@@ -8,45 +8,23 @@ import {
 const MAX_CHARACTERS = 12;
 const MIN_READING_WIDTH = 54;
 const MAX_READING_WIDTH = 82;
-const FONT_STACKS = {
-  standard: {
-    family: '"Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif',
-    weight: "470",
-  },
-  mincho: {
-    family: '"Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif',
-    weight: "560",
-  },
-  kaisho: { family: '"Kouzan Kaisho", "Noto Serif CJK JP", serif', weight: "400" },
-  gyosho: { family: '"Kouzan Gyosho", "Noto Serif CJK JP", serif', weight: "400" },
-  sosho: { family: '"Kouzan Sosho", "Noto Serif CJK JP", serif', weight: "400" },
-  klee: { family: '"Klee One", "Noto Serif CJK JP", serif', weight: "400" },
-  "yuji-syuku": { family: '"Yuji Syuku", "Noto Serif CJK JP", serif', weight: "400" },
-  "yuji-mai": { family: '"Yuji Mai", "Noto Serif CJK JP", serif', weight: "400" },
-  "yuji-boku": { family: '"Yuji Boku", "Noto Serif CJK JP", serif', weight: "400" },
-  shippori: { family: '"Shippori Mincho", "Noto Serif CJK JP", serif', weight: "400" },
-  hina: { family: '"Hina Mincho", "Noto Serif CJK JP", serif', weight: "400" },
-  "zen-old": { family: '"Zen Old Mincho", "Noto Serif CJK JP", serif', weight: "400" },
-  kaisei: { family: '"Kaisei Decol", "Noto Serif CJK JP", serif', weight: "400" },
-  kiwi: { family: '"Kiwi Maru", "Noto Sans CJK JP", sans-serif', weight: "400" },
-  kurenaido: { family: '"Zen Kurenaido", "Noto Sans CJK JP", sans-serif', weight: "400" },
-};
-const FONT_MODES = Object.keys(FONT_STACKS);
+const MIRROR_MODES = ["standard", "mincho"];
 
 const characters = [];
 const furiganaInputs = new Map();
 let nextId = 0;
-let fontMode = "standard";
+let mirrorMode = "mincho";
 let isFull = false;
 let limitTimer = 0;
 
 const pageShell = document.querySelector(".page-shell");
 const writingLine = document.querySelector(".writing-line");
+const mirrorLine = document.querySelector(".mirror-line");
 const composerUnit = document.querySelector(".composer-unit");
 const mainInput = document.querySelector(".main-input");
 const clearButton = document.querySelector(".clear-button");
 const statusRow = document.querySelector(".status-row");
-const fontSelect = document.querySelector(".font-select");
+const mirrorButtons = document.querySelectorAll(".font-switch button");
 
 let composingMain = false;
 let lastCompositionCommit = null;
@@ -197,6 +175,37 @@ function createCharColumn(entry) {
   return unit;
 }
 
+function createMirrorColumn(entry) {
+  const canHaveReading = isKanji(entry.char);
+  const unit = document.createElement("div");
+  unit.className = `mirror-unit${canHaveReading ? " has-reading" : " kana-unit"}`;
+  unit.dataset.id = String(entry.id);
+
+  const display = document.createElement("span");
+  display.className = `mirror-char ${canHaveReading ? "kanji-display" : "kana-display"}`;
+  display.textContent = entry.char;
+
+  unit.append(display);
+  return unit;
+}
+
+function syncMirrorLine() {
+  const existing = [...mirrorLine.querySelectorAll(".mirror-unit")];
+  const byId = new Map(existing.map((node) => [Number(node.dataset.id), node]));
+  const wanted = new Set(characters.map((entry) => entry.id));
+
+  for (const node of existing) {
+    const id = Number(node.dataset.id);
+    if (!wanted.has(id)) node.remove();
+  }
+
+  for (const entry of characters) {
+    if (!byId.has(entry.id)) {
+      mirrorLine.append(createMirrorColumn(entry));
+    }
+  }
+}
+
 function syncWritingLine() {
   const existing = [...writingLine.querySelectorAll(".character-unit:not(.composer-unit)")];
   const byId = new Map(existing.map((node) => [Number(node.dataset.id), node]));
@@ -216,6 +225,7 @@ function syncWritingLine() {
     }
   }
 
+  syncMirrorLine();
   updateClearButton();
   recalculateFull();
 }
@@ -300,30 +310,24 @@ function commitMainInput(value) {
   return true;
 }
 
-function setFontMode(mode) {
-  const stack = FONT_STACKS[mode];
-  if (!stack) return;
-  fontMode = mode;
-  pageShell.classList.remove(...FONT_MODES.map((name) => `font-${name}`));
-  pageShell.classList.add(`font-${mode}`);
-  pageShell.style.setProperty("--write-font", stack.family);
-  pageShell.style.setProperty("--write-weight", stack.weight);
-  if (fontSelect && fontSelect.value !== mode) {
-    fontSelect.value = mode;
+function setMirrorMode(mode) {
+  if (!MIRROR_MODES.includes(mode)) return;
+  mirrorMode = mode;
+  pageShell.classList.remove(...MIRROR_MODES.map((name) => `mirror-${name}`));
+  pageShell.classList.add(`mirror-${mode}`);
+  for (const button of mirrorButtons) {
+    const active = button.dataset.mirror === mode;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
   }
-
-  const primary = stack.family.split(",")[0].trim().replaceAll('"', "");
-  const loadFonts =
-    document.fonts && document.fonts.load
-      ? document.fonts.load(`${stack.weight} 64px "${primary}"`, "あいう漢字日本語")
-      : Promise.resolve();
-
-  loadFonts.finally(() => {
-    recalculateFull();
-  });
 }
 
-writingLine.addEventListener("click", () => mainInput.focus());
+function focusMainInput() {
+  mainInput.focus();
+}
+
+writingLine.addEventListener("click", focusMainInput);
+mirrorLine.addEventListener("click", focusMainInput);
 
 mainInput.addEventListener("click", (event) => event.stopPropagation());
 
@@ -384,9 +388,9 @@ mainInput.addEventListener("paste", (event) => {
   mainInput.size = 1;
 });
 
-fontSelect.addEventListener("change", (event) => {
-  setFontMode(event.currentTarget.value);
-});
+for (const button of mirrorButtons) {
+  button.addEventListener("click", () => setMirrorMode(button.dataset.mirror));
+}
 
 clearButton.addEventListener("click", clearAll);
 
@@ -394,5 +398,6 @@ if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(() => recalculateFull()).observe(writingLine);
 }
 
-setFontMode(fontSelect?.value || "standard");
+setMirrorMode(mirrorMode);
+recalculateFull();
 mainInput.focus();

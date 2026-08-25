@@ -17,6 +17,7 @@
   --control: #6f6b60;
   --control-light: #b5aea0;
   --accent: #9a302b;
+  --mirror: rgba(23, 23, 20, 0.38);
   --kanji-size: clamp(4rem, 6.1vw, 5.5rem);
   --kana-size: calc(var(--kanji-size) * 0.7);
   --furigana-size: clamp(0.88rem, 1.2vw, 1.05rem);
@@ -56,8 +57,22 @@ button {
   background:
     linear-gradient(to bottom, rgba(23, 23, 20, 0.025) 1px, transparent 1px) 0 0 / 100% 40px,
     var(--paper);
-  --write-font: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
-  --write-weight: 470;
+  --write-font: "Klee One", "Noto Serif CJK JP", "Noto Serif JP", serif;
+  --write-weight: 400;
+  --mirror-font: "Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN",
+    serif;
+  --mirror-weight: 560;
+}
+
+.page-shell.mirror-standard {
+  --mirror-font: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --mirror-weight: 470;
+}
+
+.page-shell.mirror-mincho {
+  --mirror-font: "Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN",
+    serif;
+  --mirror-weight: 560;
 }
 
 .topbar {
@@ -100,54 +115,35 @@ button {
   gap: 10px;
 }
 
-@font-face {
-  font-family: "Kouzan Kaisho";
-  src: url("fonts/kouzan-kaisho.woff2") format("woff2");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Kouzan Gyosho";
-  src: url("fonts/kouzan-gyosho.woff2") format("woff2");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Kouzan Sosho";
-  src: url("fonts/kouzan-sosho.woff2") format("woff2");
-  font-display: swap;
-}
-
-.font-select-label {
+.font-switch {
   display: inline-flex;
-  min-width: 0;
-}
-
-.font-select {
-  min-height: 34px;
-  max-width: min(100%, 220px);
   border: 1px solid var(--control-light);
   border-radius: 7px;
-  padding: 6px 28px 6px 10px;
-  background:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 14px) 55% / 5px 5px no-repeat,
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 9px) 55% / 5px 5px no-repeat,
-    rgba(255, 255, 255, 0.3);
-  color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 680;
-  line-height: 1.2;
-  appearance: none;
-  cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.font-select:hover {
-  border-color: var(--ink);
-  background:
-    linear-gradient(45deg, transparent 50%, var(--ink) 50%) calc(100% - 14px) 55% / 5px 5px no-repeat,
-    linear-gradient(135deg, var(--ink) 50%, transparent 50%) calc(100% - 9px) 55% / 5px 5px no-repeat,
-    rgba(255, 255, 255, 0.46);
+.font-switch button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 0;
+  padding: 7px 11px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 680;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.font-switch button + button {
+  border-left: 1px solid var(--control-light);
+}
+
+.font-switch button:hover,
+.font-switch button.is-active {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .clear-button {
@@ -169,21 +165,8 @@ button {
   color: var(--ink);
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 button:focus-visible,
-input:focus-visible,
-select:focus-visible {
+input:focus-visible {
   outline: 3px solid rgba(154, 48, 43, 0.34);
   outline-offset: 2px;
 }
@@ -194,8 +177,8 @@ select:focus-visible {
   align-self: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: clamp(30px, 5vh, 64px) clamp(24px, 6vw, 88px) clamp(38px, 6vh, 72px);
+  justify-content: flex-start;
+  padding: clamp(48px, 8vh, 96px) clamp(24px, 6vw, 88px) clamp(38px, 6vh, 72px);
 }
 
 .instruction-row {
@@ -238,9 +221,10 @@ kbd {
 
 .writing-stage {
   width: 100%;
-  min-height: calc(var(--reading-height) + var(--kanji-size) + 48px);
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
 }
 
 .writing-line {
@@ -276,6 +260,30 @@ kbd {
   background: var(--accent);
 }
 
+.mirror-line {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--kanji-size) + 18px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 8px 14px;
+  cursor: text;
+  user-select: none;
+}
+
+.mirror-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 1px;
+  background: rgba(23, 23, 20, 0.16);
+}
+
 .character-unit {
   position: relative;
   z-index: 1;
@@ -283,6 +291,16 @@ kbd {
   width: var(--kanji-slot);
   display: grid;
   grid-template-rows: var(--reading-height) auto;
+  justify-items: center;
+  align-items: end;
+}
+
+.mirror-unit {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: var(--kanji-slot);
+  display: grid;
   justify-items: center;
   align-items: end;
 }
@@ -351,6 +369,17 @@ kbd {
   user-select: none;
 }
 
+.mirror-char {
+  display: block;
+  overflow: visible;
+  color: var(--mirror);
+  font-family: var(--mirror-font);
+  font-weight: var(--mirror-weight);
+  line-height: 0.96;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .kanji-display {
   width: var(--kanji-slot);
   font-size: var(--kanji-size);
@@ -359,40 +388,6 @@ kbd {
 .kana-display {
   width: var(--kana-slot);
   font-size: var(--kana-size);
-}
-
-.font-standard .char-display,
-.font-standard .main-input,
-.font-mincho .char-display,
-.font-mincho .main-input,
-.font-kaisho .char-display,
-.font-kaisho .main-input,
-.font-gyosho .char-display,
-.font-gyosho .main-input,
-.font-sosho .char-display,
-.font-sosho .main-input,
-.font-klee .char-display,
-.font-klee .main-input,
-.font-yuji-syuku .char-display,
-.font-yuji-syuku .main-input,
-.font-yuji-mai .char-display,
-.font-yuji-mai .main-input,
-.font-yuji-boku .char-display,
-.font-yuji-boku .main-input,
-.font-shippori .char-display,
-.font-shippori .main-input,
-.font-hina .char-display,
-.font-hina .main-input,
-.font-zen-old .char-display,
-.font-zen-old .main-input,
-.font-kaisei .char-display,
-.font-kaisei .main-input,
-.font-kiwi .char-display,
-.font-kiwi .main-input,
-.font-kurenaido .char-display,
-.font-kurenaido .main-input {
-  font-family: var(--write-font);
-  font-weight: var(--write-weight);
 }
 
 .composer-unit {
@@ -501,21 +496,21 @@ kbd {
     display: none;
   }
 
-  .font-select {
-    max-width: 160px;
+  .font-switch button {
+    padding-inline: 8px;
     font-size: 0.72rem;
   }
 
   .writing-workspace {
-    justify-content: flex-start;
-    padding: 40px 16px 28px;
+    padding: 36px 16px 28px;
   }
 
   .arrow-hint {
     display: none;
   }
 
-  .writing-line {
+  .writing-line,
+  .mirror-line {
     overflow: hidden;
     padding-inline: 2px;
   }
