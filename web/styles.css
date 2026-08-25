@@ -40,7 +40,7 @@ body {
 }
 
 button,
-input {
+input:not(.main-input) {
   font: inherit;
 }
 
@@ -56,6 +56,8 @@ button {
   background:
     linear-gradient(to bottom, rgba(23, 23, 20, 0.025) 1px, transparent 1px) 0 0 / 100% 40px,
     var(--paper);
+  --write-font: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --write-weight: 470;
 }
 
 .topbar {
@@ -98,38 +100,54 @@ button {
   gap: 10px;
 }
 
-.font-switch {
+@font-face {
+  font-family: "Kouzan Kaisho";
+  src: url("fonts/kouzan-kaisho.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Kouzan Gyosho";
+  src: url("fonts/kouzan-gyosho.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Kouzan Sosho";
+  src: url("fonts/kouzan-sosho.woff2") format("woff2");
+  font-display: swap;
+}
+
+.font-select-label {
   display: inline-flex;
+  min-width: 0;
+}
+
+.font-select {
+  min-height: 34px;
+  max-width: min(100%, 220px);
   border: 1px solid var(--control-light);
   border-radius: 7px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.font-switch button,
-.clear-button {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
-}
-
-.font-switch button {
-  min-height: 34px;
-  padding: 7px 11px;
-  color: var(--muted);
+  padding: 6px 28px 6px 10px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 14px) 55% / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 9px) 55% / 5px 5px no-repeat,
+    rgba(255, 255, 255, 0.3);
+  color: var(--ink);
   font-size: 0.78rem;
   font-weight: 680;
+  line-height: 1.2;
+  appearance: none;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
-.font-switch button + button {
-  border-left: 1px solid var(--control-light);
-}
-
-.font-switch button:hover,
-.font-switch button.is-active {
-  background: var(--ink);
-  color: var(--paper);
+.font-select:hover {
+  border-color: var(--ink);
+  background:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%) calc(100% - 14px) 55% / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%) calc(100% - 9px) 55% / 5px 5px no-repeat,
+    rgba(255, 255, 255, 0.46);
 }
 
 .clear-button {
@@ -137,9 +155,12 @@ button {
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 7px 9px;
+  background: transparent;
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 680;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .clear-button:hover {
@@ -148,8 +169,21 @@ button {
   color: var(--ink);
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 3px solid rgba(154, 48, 43, 0.34);
   outline-offset: 2px;
 }
@@ -307,7 +341,10 @@ kbd {
 
 .char-display {
   display: block;
+  overflow: visible;
   color: var(--ink);
+  font-family: var(--write-font);
+  font-weight: var(--write-weight);
   line-height: 0.96;
   text-align: center;
   white-space: nowrap;
@@ -325,15 +362,37 @@ kbd {
 }
 
 .font-standard .char-display,
-.font-standard .main-input {
-  font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
-  font-weight: 470;
-}
-
+.font-standard .main-input,
 .font-mincho .char-display,
-.font-mincho .main-input {
-  font-family: "Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-weight: 560;
+.font-mincho .main-input,
+.font-kaisho .char-display,
+.font-kaisho .main-input,
+.font-gyosho .char-display,
+.font-gyosho .main-input,
+.font-sosho .char-display,
+.font-sosho .main-input,
+.font-klee .char-display,
+.font-klee .main-input,
+.font-yuji-syuku .char-display,
+.font-yuji-syuku .main-input,
+.font-yuji-mai .char-display,
+.font-yuji-mai .main-input,
+.font-yuji-boku .char-display,
+.font-yuji-boku .main-input,
+.font-shippori .char-display,
+.font-shippori .main-input,
+.font-hina .char-display,
+.font-hina .main-input,
+.font-zen-old .char-display,
+.font-zen-old .main-input,
+.font-kaisei .char-display,
+.font-kaisei .main-input,
+.font-kiwi .char-display,
+.font-kiwi .main-input,
+.font-kurenaido .char-display,
+.font-kurenaido .main-input {
+  font-family: var(--write-font);
+  font-weight: var(--write-weight);
 }
 
 .composer-unit {
@@ -360,6 +419,8 @@ kbd {
   padding: 0 7px 2px;
   background: transparent;
   color: var(--ink);
+  font-family: var(--write-font);
+  font-weight: var(--write-weight);
   font-size: var(--kanji-size);
   line-height: 0.96;
   text-align: left;
@@ -440,8 +501,8 @@ kbd {
     display: none;
   }
 
-  .font-switch button {
-    padding-inline: 8px;
+  .font-select {
+    max-width: 160px;
     font-size: 0.72rem;
   }
 

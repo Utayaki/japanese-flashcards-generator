@@ -1,0 +1,22 @@
+Kouzan / Aoyagi brush fonts
+===========================
+
+These webfonts are derived from free fonts published by Musashi System
+(武蔵システム), created from calligraphy by Aoyagi Kouzan (青柳衡山).
+
+Included files
+--------------
+- kouzan-kaisho.woff2  — from 衡山毛筆フォント
+  Source: https://opentype.jp/kouzanmouhitufont.htm
+- kouzan-gyosho.woff2  — from 衡山毛筆フォント行書
+  Source: https://opentype.jp/kouzangyousho.htm
+- kouzan-sosho.woff2   — from 衡山毛筆フォント草書
+  Source: https://opentype.jp/kouzansousho.htm
+
+License (from the distributor and calligrapher)
+-----------------------------------------------
+Free to use. Commercial use allowed with no restrictions.
+Copyright has been waived (完全フリー / 著作権放棄). Modification and
+redistribution are permitted. No warranty; use at your own risk.
+
+See also: http://www7a.biglobe.ne.jp/~kouzan/articles2.html

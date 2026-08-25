@@ -4,7 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Furigana Editor</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hina+Mincho&family=Kaisei+Decol&family=Kiwi+Maru:wght@400&family=Klee+One&family=Shippori+Mincho&family=Yuji+Boku&family=Yuji+Mai&family=Yuji+Syuku&family=Zen+Kurenaido&family=Zen+Old+Mincho&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css?v=2" />
   </head>
   <body>
     <main class="page-shell font-standard">
@@ -15,12 +21,32 @@
         </div>
 
         <div class="topbar-actions" aria-label="Editor controls">
-          <div class="font-switch" aria-label="Japanese typeface">
-            <button type="button" data-font="standard" class="is-active" aria-pressed="true">
-              Standard
-            </button>
-            <button type="button" data-font="mincho" aria-pressed="false">Mincho</button>
-          </div>
+          <label class="font-select-label">
+            <span class="visually-hidden">Japanese typeface</span>
+            <select class="font-select" aria-label="Japanese typeface">
+              <optgroup label="Basics">
+                <option value="standard" selected>Standard</option>
+                <option value="mincho">Mincho</option>
+              </optgroup>
+              <optgroup label="Kouzan brush">
+                <option value="kaisho">楷書</option>
+                <option value="gyosho">行書</option>
+                <option value="sosho">草書</option>
+              </optgroup>
+              <optgroup label="More">
+                <option value="klee">Klee One</option>
+                <option value="yuji-syuku">Yuji Syuku</option>
+                <option value="yuji-mai">Yuji Mai</option>
+                <option value="yuji-boku">Yuji Boku</option>
+                <option value="shippori">Shippori Mincho</option>
+                <option value="hina">Hina Mincho</option>
+                <option value="zen-old">Zen Old Mincho</option>
+                <option value="kaisei">Kaisei Decol</option>
+                <option value="kiwi">Kiwi Maru</option>
+                <option value="kurenaido">Zen Kurenaido</option>
+              </optgroup>
+            </select>
+          </label>
           <button class="clear-button hidden" type="button">Clear</button>
         </div>
       </header>
@@ -58,6 +84,6 @@
         </div>
       </section>
     </main>
-    <script type="module" src="editor.js"></script>
+    <script type="module" src="editor.js?v=2"></script>
   </body>
 </html>
