@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { filterJapanese, isJapaneseChar } from "./japanese.js";
 
 const MainInput = forwardRef(function MainInput(
-  { onAddCharacters, onRemoveLast },
+  { onAddCharacters, onRemoveLast, onMoveToLastFurigana, disabled },
   ref
 ) {
   const inputRef = useRef(null);
@@ -26,6 +26,8 @@ const MainInput = forwardRef(function MainInput(
 
   function handlePaste(event) {
     event.preventDefault();
+    if (disabled) return;
+
     const pasted = filterJapanese(event.clipboardData.getData("text"));
     if (!pasted) return;
 
@@ -36,7 +38,7 @@ const MainInput = forwardRef(function MainInput(
   const visibleLength = Math.max(1, [...draft].length);
 
   return (
-    <div className="character-unit composer-unit">
+    <div className={`character-unit composer-unit${disabled ? " is-full" : ""}`}>
       <div className="reading-area" aria-hidden="true" />
       <div className="composer-shell">
         <input
@@ -45,27 +47,35 @@ const MainInput = forwardRef(function MainInput(
           className="main-input"
           value={draft}
           size={visibleLength}
-          placeholder="入力"
+          placeholder={disabled ? "満" : "入力"}
           aria-label="Japanese text input"
+          aria-disabled={disabled}
+          readOnly={disabled}
           autoComplete="off"
           autoCapitalize="off"
           autoFocus
           spellCheck={false}
           inputMode="text"
           onCompositionStart={() => {
-            isComposingRef.current = true;
+            if (!disabled) isComposingRef.current = true;
           }}
           onCompositionEnd={(event) => {
             isComposingRef.current = false;
+            if (disabled) {
+              setDraft("");
+              return;
+            }
             const value = event.currentTarget.value;
             const committed = commitInput(value);
             lastCompositionCommitRef.current = committed ? value : null;
           }}
           onChange={(event) => {
-            const value = event.currentTarget.value;
+            if (disabled) {
+              setDraft("");
+              return;
+            }
 
-            // Some browsers emit one final change after compositionend. Ignore only
-            // that exact duplicate, never the user's next real input.
+            const value = event.currentTarget.value;
             if (lastCompositionCommitRef.current === value) {
               lastCompositionCommitRef.current = null;
               return;
@@ -73,7 +83,6 @@ const MainInput = forwardRef(function MainInput(
             lastCompositionCommitRef.current = null;
             setDraft(value);
 
-            // Direct Japanese keyboard input does not always produce a composition event.
             if (!isComposingRef.current && [...value].some(isJapaneseChar)) {
               commitInput(value);
             }
@@ -86,6 +95,15 @@ const MainInput = forwardRef(function MainInput(
             ) {
               event.preventDefault();
               onRemoveLast();
+            }
+
+            if (
+              event.key === "ArrowLeft" &&
+              draft === "" &&
+              !isComposingRef.current
+            ) {
+              event.preventDefault();
+              onMoveToLastFurigana();
             }
           }}
           onPaste={handlePaste}

@@ -1,17 +1,114 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import CharColumn from "./CharColumn.jsx";
 import MainInput from "./MainInput.jsx";
+import { isKanji } from "./japanese.js";
 
+const MAX_CHARACTERS = 12;
 let nextId = 0;
 
 export default function FuriganaEditor() {
   const [characters, setCharacters] = useState([]);
+  const [fontMode, setFontMode] = useState("standard");
+  const [limitNotice, setLimitNotice] = useState(false);
+  const [isFull, setIsFull] = useState(false);
   const mainInputRef = useRef(null);
+  const writingLineRef = useRef(null);
+  const furiganaRefs = useRef(new Map());
+  const limitTimerRef = useRef(null);
+
+  const furiganaIds = useMemo(
+    () => characters.filter((entry) => isKanji(entry.char)).map((entry) => entry.id),
+    [characters]
+  );
+
+  function getLineMetrics() {
+    const line = writingLineRef.current;
+    if (!line) return null;
+
+    const composer = line.querySelector(".composer-unit");
+    if (!composer) return null;
+
+    const lineStyle = window.getComputedStyle(line);
+    const composerWidth = composer.getBoundingClientRect().width;
+    const readingReserve =
+      Number.parseFloat(lineStyle.getPropertyValue("--reading-max")) || composerWidth;
+    const padding =
+      Number.parseFloat(lineStyle.paddingLeft) + Number.parseFloat(lineStyle.paddingRight);
+
+    const usedCharacterWidth = [...line.children]
+      .filter((child) => child.classList.contains("character-unit") && !child.classList.contains("composer-unit"))
+      .reduce((total, child) => total + child.getBoundingClientRect().width, 0);
+
+    return {
+      available: line.clientWidth - padding,
+      used: usedCharacterWidth + composerWidth,
+      kanjiWidth: Math.max(composerWidth, readingReserve),
+      kanaWidth: composerWidth * 0.72,
+    };
+  }
+
+  function recalculateFull() {
+    if (characters.length >= MAX_CHARACTERS) {
+      setIsFull(true);
+      return;
+    }
+
+    const metrics = getLineMetrics();
+    if (!metrics) {
+      setIsFull(false);
+      return;
+    }
+
+    setIsFull(metrics.used + metrics.kanjiWidth > metrics.available + 0.5);
+  }
+
+  useLayoutEffect(() => {
+    recalculateFull();
+  }, [characters, fontMode]);
+
+  useLayoutEffect(() => {
+    const line = writingLineRef.current;
+    if (!line || typeof ResizeObserver === "undefined") return undefined;
+
+    const observer = new ResizeObserver(recalculateFull);
+    observer.observe(line);
+    return () => observer.disconnect();
+  }, [characters]);
+
+  function showLimitNotice() {
+    setLimitNotice(true);
+    window.clearTimeout(limitTimerRef.current);
+    limitTimerRef.current = window.setTimeout(() => setLimitNotice(false), 1700);
+  }
 
   function addCharacters(chars) {
+    const metrics = getLineMetrics();
+    let remainingWidth = metrics ? metrics.available - metrics.used : Number.POSITIVE_INFINITY;
+    let remainingCount = MAX_CHARACTERS - characters.length;
+    const accepted = [];
+
+    for (const char of chars) {
+      if (remainingCount <= 0) break;
+
+      const predictedWidth = metrics
+        ? isKanji(char)
+          ? metrics.kanjiWidth
+          : metrics.kanaWidth
+        : 0;
+
+      if (metrics && predictedWidth > remainingWidth + 0.5) break;
+
+      accepted.push(char);
+      remainingWidth -= predictedWidth;
+      remainingCount -= 1;
+    }
+
+    if (accepted.length < chars.length) showLimitNotice();
+    if (accepted.length === 0) return;
+
     setCharacters((previous) => [
       ...previous,
-      ...chars.map((char) => ({ id: nextId++, char, furigana: "" })),
+      ...accepted.map((char) => ({ id: nextId++, char, furigana: "" })),
     ]);
   }
 
@@ -24,6 +121,7 @@ export default function FuriganaEditor() {
   }
 
   function removeLast() {
+    setLimitNotice(false);
     setCharacters((previous) =>
       previous.length > 0 ? previous.slice(0, -1) : previous
     );
@@ -31,6 +129,7 @@ export default function FuriganaEditor() {
 
   function clearAll() {
     setCharacters([]);
+    setLimitNotice(false);
     requestAnimationFrame(() => mainInputRef.current?.focus());
   }
 
@@ -38,35 +137,91 @@ export default function FuriganaEditor() {
     mainInputRef.current?.focus();
   }
 
+  function registerFurigana(id, node) {
+    if (node) furiganaRefs.current.set(id, node);
+    else furiganaRefs.current.delete(id);
+  }
+
+  function focusFuriganaAt(index) {
+    if (index < 0 || index >= furiganaIds.length) return;
+    const input = furiganaRefs.current.get(furiganaIds[index]);
+    if (!input) return;
+    input.focus();
+    const end = input.value.length;
+    input.setSelectionRange(end, end);
+  }
+
+  function handleFuriganaArrow(id, direction) {
+    const index = furiganaIds.indexOf(id);
+    if (index === -1) return;
+
+    const nextIndex = index + direction;
+    if (nextIndex >= furiganaIds.length) {
+      mainInputRef.current?.focus();
+      return;
+    }
+    focusFuriganaAt(nextIndex);
+  }
+
+  function moveToLastFurigana() {
+    focusFuriganaAt(furiganaIds.length - 1);
+  }
+
   return (
-    <main className="page-shell">
-      <section className="editor-card" aria-labelledby="editor-title">
-        <header className="editor-header">
-          <div>
-            <p className="eyebrow">Japanese writing</p>
-            <h1 id="editor-title">Kanji + furigana</h1>
+    <main className={`page-shell font-${fontMode}`}>
+      <header className="topbar">
+        <div className="identity">
+          <span className="identity-jp">振り仮名</span>
+          <span className="identity-en">Japanese writing</span>
+        </div>
+
+        <div className="topbar-actions" aria-label="Editor controls">
+          <div className="font-switch" aria-label="Japanese typeface">
+            <button
+              type="button"
+              className={fontMode === "standard" ? "is-active" : ""}
+              aria-pressed={fontMode === "standard"}
+              onClick={() => setFontMode("standard")}
+            >
+              Standard
+            </button>
+            <button
+              type="button"
+              className={fontMode === "mincho" ? "is-active" : ""}
+              aria-pressed={fontMode === "mincho"}
+              onClick={() => setFontMode("mincho")}
+            >
+              Mincho
+            </button>
           </div>
+
           {characters.length > 0 && (
             <button className="clear-button" type="button" onClick={clearAll}>
               Clear
             </button>
           )}
-        </header>
+        </div>
+      </header>
 
-        <p className="editor-help">
-          Type Japanese on the line. Add a reading directly above each kanji.
-        </p>
+      <section className="writing-workspace" aria-label="Japanese writing editor">
+        <div className="instruction-row">
+          <p>Type Japanese. Add kana readings above each kanji.</p>
+          <p className="arrow-hint"><kbd>←</kbd><kbd>→</kbd> move between readings</p>
+        </div>
 
-        <div className="writing-viewport" role="group" aria-label="Japanese writing line">
-          <div className="writing-line" onClick={focusMainInput}>
+        <div className="writing-stage">
+          <div ref={writingLineRef} className="writing-line" onClick={focusMainInput}>
             {characters.map((entry) => (
               <CharColumn
                 key={entry.id}
+                id={entry.id}
                 char={entry.char}
                 furigana={entry.furigana}
                 onFuriganaChange={(furigana) =>
                   updateFurigana(entry.id, furigana)
                 }
+                onRegisterFurigana={registerFurigana}
+                onFuriganaArrow={handleFuriganaArrow}
               />
             ))}
 
@@ -74,14 +229,18 @@ export default function FuriganaEditor() {
               ref={mainInputRef}
               onAddCharacters={addCharacters}
               onRemoveLast={removeLast}
+              onMoveToLastFurigana={moveToLastFurigana}
+              disabled={isFull}
             />
           </div>
         </div>
 
-        <div className="keyboard-hint" aria-hidden="true">
-          <span>Backspace removes the last character</span>
-          <span className="keyboard-dot">•</span>
-          <span>Tab moves through readings</span>
+        <div className="status-row" aria-live="polite">
+          {limitNotice || isFull ? (
+            <span className="limit-message">Line full · Backspace to continue</span>
+          ) : (
+            <span className="status-spacer" aria-hidden="true" />
+          )}
         </div>
       </section>
     </main>
