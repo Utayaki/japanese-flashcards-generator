@@ -10,33 +10,11 @@
       href="https://fonts.googleapis.com/css2?family=Klee+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=4" />
   </head>
   <body>
-    <main class="page-shell mirror-mincho">
-      <header class="topbar">
-        <div class="identity">
-          <span class="identity-jp">振り仮名</span>
-          <span class="identity-en">Japanese writing</span>
-        </div>
-
-        <div class="topbar-actions" aria-label="Editor controls">
-          <div class="font-switch" aria-label="Reference typeface for the line below">
-            <button type="button" data-mirror="standard" aria-pressed="false">Standard</button>
-            <button type="button" data-mirror="mincho" class="is-active" aria-pressed="true">
-              Mincho
-            </button>
-          </div>
-          <button class="clear-button hidden" type="button">Clear</button>
-        </div>
-      </header>
-
+    <main class="page-shell">
       <section class="writing-workspace" aria-label="Japanese writing editor">
-        <div class="instruction-row">
-          <p>Type Japanese. Add kana readings above each kanji.</p>
-          <p class="arrow-hint"><kbd>←</kbd><kbd>→</kbd> move between readings</p>
-        </div>
-
         <div class="writing-stage">
           <div class="writing-line">
             <div class="character-unit composer-unit">
@@ -66,6 +44,6 @@
         </div>
       </section>
     </main>
-    <script type="module" src="editor.js?v=3"></script>
+    <script type="module" src="editor.js?v=4"></script>
   </body>
 </html>

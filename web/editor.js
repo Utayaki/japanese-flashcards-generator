@@ -8,23 +8,18 @@ import {
 const MAX_CHARACTERS = 12;
 const MIN_READING_WIDTH = 54;
 const MAX_READING_WIDTH = 82;
-const MIRROR_MODES = ["standard", "mincho"];
 
 const characters = [];
 const furiganaInputs = new Map();
 let nextId = 0;
-let mirrorMode = "mincho";
 let isFull = false;
 let limitTimer = 0;
 
-const pageShell = document.querySelector(".page-shell");
 const writingLine = document.querySelector(".writing-line");
 const mirrorLine = document.querySelector(".mirror-line");
 const composerUnit = document.querySelector(".composer-unit");
 const mainInput = document.querySelector(".main-input");
-const clearButton = document.querySelector(".clear-button");
 const statusRow = document.querySelector(".status-row");
-const mirrorButtons = document.querySelectorAll(".font-switch button");
 
 let composingMain = false;
 let lastCompositionCommit = null;
@@ -98,10 +93,6 @@ function showLimitNotice() {
     updateStatus();
   }, 1700);
   updateStatus();
-}
-
-function updateClearButton() {
-  clearButton.classList.toggle("hidden", characters.length === 0);
 }
 
 function createCharColumn(entry) {
@@ -226,7 +217,6 @@ function syncWritingLine() {
   }
 
   syncMirrorLine();
-  updateClearButton();
   recalculateFull();
 }
 
@@ -266,15 +256,6 @@ function removeLast() {
   syncWritingLine();
 }
 
-function clearAll() {
-  characters.length = 0;
-  furiganaInputs.clear();
-  window.clearTimeout(limitTimer);
-  limitTimer = 0;
-  syncWritingLine();
-  requestAnimationFrame(() => mainInput.focus());
-}
-
 function focusFuriganaAt(index) {
   const ids = furiganaIds();
   if (index < 0 || index >= ids.length) return;
@@ -308,18 +289,6 @@ function commitMainInput(value) {
   mainInput.value = "";
   mainInput.size = 1;
   return true;
-}
-
-function setMirrorMode(mode) {
-  if (!MIRROR_MODES.includes(mode)) return;
-  mirrorMode = mode;
-  pageShell.classList.remove(...MIRROR_MODES.map((name) => `mirror-${name}`));
-  pageShell.classList.add(`mirror-${mode}`);
-  for (const button of mirrorButtons) {
-    const active = button.dataset.mirror === mode;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
-  }
 }
 
 function focusMainInput() {
@@ -388,16 +357,9 @@ mainInput.addEventListener("paste", (event) => {
   mainInput.size = 1;
 });
 
-for (const button of mirrorButtons) {
-  button.addEventListener("click", () => setMirrorMode(button.dataset.mirror));
-}
-
-clearButton.addEventListener("click", clearAll);
-
 if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(() => recalculateFull()).observe(writingLine);
 }
 
-setMirrorMode(mirrorMode);
 recalculateFull();
 mainInput.focus();
