@@ -1,14 +1,31 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { filterKana, isKanji } from "./japanese.js";
+"use client";
+
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
+import { filterKana, isKanji } from "@/lib/japanese";
 
 const MIN_READING_WIDTH = 54;
 const MAX_READING_WIDTH = 82;
 
-function readingWidth(value) {
+function readingWidth(value: string): number {
   const length = [...value].length;
   if (length === 0) return MIN_READING_WIDTH;
   return Math.min(MAX_READING_WIDTH, Math.max(MIN_READING_WIDTH, 18 + length * 13));
 }
+
+type CharColumnProps = {
+  id: number;
+  char: string;
+  furigana: string;
+  onFuriganaChange: (furigana: string) => void;
+  onRegisterFurigana: (id: number, node: HTMLInputElement | null) => void;
+  onFuriganaArrow: (id: number, direction: -1 | 1) => void;
+};
 
 export default function CharColumn({
   id,
@@ -17,7 +34,7 @@ export default function CharColumn({
   onFuriganaChange,
   onRegisterFurigana,
   onFuriganaArrow,
-}) {
+}: CharColumnProps) {
   const [localValue, setLocalValue] = useState(furigana);
   const isComposingRef = useRef(false);
   const canHaveReading = isKanji(char);
@@ -28,7 +45,7 @@ export default function CharColumn({
 
   const width = useMemo(() => readingWidth(localValue), [localValue]);
 
-  function commitValue(value) {
+  function commitValue(value: string) {
     const filtered = filterKana(value);
     setLocalValue(filtered);
     onFuriganaChange(filtered);
@@ -37,7 +54,11 @@ export default function CharColumn({
   return (
     <div
       className={`character-unit${canHaveReading ? " has-reading" : " kana-unit"}`}
-      style={canHaveReading ? { "--reading-width": `${width}px` } : undefined}
+      style={
+        canHaveReading
+          ? ({ "--reading-width": `${width}px` } as CSSProperties)
+          : undefined
+      }
     >
       <div className="reading-area">
         {canHaveReading ? (
@@ -79,7 +100,9 @@ export default function CharColumn({
           <span className="reading-placeholder" aria-hidden="true" />
         )}
       </div>
-      <span className={`char-display ${canHaveReading ? "kanji-display" : "kana-display"}`}>
+      <span
+        className={`char-display ${canHaveReading ? "kanji-display" : "kana-display"}`}
+      >
         {char}
       </span>
     </div>

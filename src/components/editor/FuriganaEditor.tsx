@@ -1,27 +1,44 @@
+"use client";
+
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import CharColumn from "./CharColumn.jsx";
-import MainInput from "./MainInput.jsx";
-import { isKanji } from "./japanese.js";
+import CharColumn from "@/components/editor/CharColumn";
+import MainInput from "@/components/editor/MainInput";
+import { isKanji } from "@/lib/japanese";
 
 const MAX_CHARACTERS = 12;
 let nextId = 0;
 
+type CharacterEntry = {
+  id: number;
+  char: string;
+  furigana: string;
+};
+
+type FontMode = "standard" | "mincho";
+
+type LineMetrics = {
+  available: number;
+  used: number;
+  kanjiWidth: number;
+  kanaWidth: number;
+};
+
 export default function FuriganaEditor() {
-  const [characters, setCharacters] = useState([]);
-  const [fontMode, setFontMode] = useState("standard");
+  const [characters, setCharacters] = useState<CharacterEntry[]>([]);
+  const [fontMode, setFontMode] = useState<FontMode>("standard");
   const [limitNotice, setLimitNotice] = useState(false);
   const [isFull, setIsFull] = useState(false);
-  const mainInputRef = useRef(null);
-  const writingLineRef = useRef(null);
-  const furiganaRefs = useRef(new Map());
-  const limitTimerRef = useRef(null);
+  const mainInputRef = useRef<HTMLInputElement | null>(null);
+  const writingLineRef = useRef<HTMLDivElement | null>(null);
+  const furiganaRefs = useRef(new Map<number, HTMLInputElement>());
+  const limitTimerRef = useRef<number | null>(null);
 
   const furiganaIds = useMemo(
     () => characters.filter((entry) => isKanji(entry.char)).map((entry) => entry.id),
     [characters]
   );
 
-  function getLineMetrics() {
+  function getLineMetrics(): LineMetrics | null {
     const line = writingLineRef.current;
     if (!line) return null;
 
@@ -31,13 +48,22 @@ export default function FuriganaEditor() {
     const lineStyle = window.getComputedStyle(line);
     const composerWidth = composer.getBoundingClientRect().width;
     const readingReserve =
-      Number.parseFloat(lineStyle.getPropertyValue("--reading-max")) || composerWidth;
+      Number.parseFloat(lineStyle.getPropertyValue("--reading-max")) ||
+      composerWidth;
     const padding =
-      Number.parseFloat(lineStyle.paddingLeft) + Number.parseFloat(lineStyle.paddingRight);
+      Number.parseFloat(lineStyle.paddingLeft) +
+      Number.parseFloat(lineStyle.paddingRight);
 
     const usedCharacterWidth = [...line.children]
-      .filter((child) => child.classList.contains("character-unit") && !child.classList.contains("composer-unit"))
-      .reduce((total, child) => total + child.getBoundingClientRect().width, 0);
+      .filter(
+        (child) =>
+          child.classList.contains("character-unit") &&
+          !child.classList.contains("composer-unit")
+      )
+      .reduce(
+        (total, child) => total + child.getBoundingClientRect().width,
+        0
+      );
 
     return {
       available: line.clientWidth - padding,
@@ -63,29 +89,39 @@ export default function FuriganaEditor() {
   }
 
   useLayoutEffect(() => {
+    // Sync line-full state from DOM width after characters/font layout.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- layout measurement
     recalculateFull();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recalculateFull closes over latest characters
   }, [characters, fontMode]);
 
   useLayoutEffect(() => {
     const line = writingLineRef.current;
     if (!line || typeof ResizeObserver === "undefined") return undefined;
 
-    const observer = new ResizeObserver(recalculateFull);
+    const observer = new ResizeObserver(() => {
+      recalculateFull();
+    });
     observer.observe(line);
     return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recalculateFull closes over latest characters
   }, [characters]);
 
   function showLimitNotice() {
     setLimitNotice(true);
-    window.clearTimeout(limitTimerRef.current);
+    if (limitTimerRef.current !== null) {
+      window.clearTimeout(limitTimerRef.current);
+    }
     limitTimerRef.current = window.setTimeout(() => setLimitNotice(false), 1700);
   }
 
-  function addCharacters(chars) {
+  function addCharacters(chars: string[]) {
     const metrics = getLineMetrics();
-    let remainingWidth = metrics ? metrics.available - metrics.used : Number.POSITIVE_INFINITY;
+    let remainingWidth = metrics
+      ? metrics.available - metrics.used
+      : Number.POSITIVE_INFINITY;
     let remainingCount = MAX_CHARACTERS - characters.length;
-    const accepted = [];
+    const accepted: string[] = [];
 
     for (const char of chars) {
       if (remainingCount <= 0) break;
@@ -112,7 +148,7 @@ export default function FuriganaEditor() {
     ]);
   }
 
-  function updateFurigana(id, furigana) {
+  function updateFurigana(id: number, furigana: string) {
     setCharacters((previous) =>
       previous.map((entry) =>
         entry.id === id ? { ...entry, furigana } : entry
@@ -137,12 +173,12 @@ export default function FuriganaEditor() {
     mainInputRef.current?.focus();
   }
 
-  function registerFurigana(id, node) {
+  function registerFurigana(id: number, node: HTMLInputElement | null) {
     if (node) furiganaRefs.current.set(id, node);
     else furiganaRefs.current.delete(id);
   }
 
-  function focusFuriganaAt(index) {
+  function focusFuriganaAt(index: number) {
     if (index < 0 || index >= furiganaIds.length) return;
     const input = furiganaRefs.current.get(furiganaIds[index]);
     if (!input) return;
@@ -151,7 +187,7 @@ export default function FuriganaEditor() {
     input.setSelectionRange(end, end);
   }
 
-  function handleFuriganaArrow(id, direction) {
+  function handleFuriganaArrow(id: number, direction: -1 | 1) {
     const index = furiganaIds.indexOf(id);
     if (index === -1) return;
 
@@ -206,11 +242,18 @@ export default function FuriganaEditor() {
       <section className="writing-workspace" aria-label="Japanese writing editor">
         <div className="instruction-row">
           <p>Type Japanese. Add kana readings above each kanji.</p>
-          <p className="arrow-hint"><kbd>←</kbd><kbd>→</kbd> move between readings</p>
+          <p className="arrow-hint">
+            <kbd>←</kbd>
+            <kbd>→</kbd> move between readings
+          </p>
         </div>
 
         <div className="writing-stage">
-          <div ref={writingLineRef} className="writing-line" onClick={focusMainInput}>
+          <div
+            ref={writingLineRef}
+            className="writing-line"
+            onClick={focusMainInput}
+          >
             {characters.map((entry) => (
               <CharColumn
                 key={entry.id}

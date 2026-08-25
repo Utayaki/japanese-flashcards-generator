@@ -1,18 +1,30 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { filterJapanese, isJapaneseChar } from "./japanese.js";
+"use client";
 
-const MainInput = forwardRef(function MainInput(
+import {
+  forwardRef,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type KeyboardEvent,
+} from "react";
+import { filterJapanese, isJapaneseChar } from "@/lib/japanese";
+
+type MainInputProps = {
+  onAddCharacters: (chars: string[]) => void;
+  onRemoveLast: () => void;
+  onMoveToLastFurigana: () => void;
+  disabled: boolean;
+};
+
+const MainInput = forwardRef<HTMLInputElement, MainInputProps>(function MainInput(
   { onAddCharacters, onRemoveLast, onMoveToLastFurigana, disabled },
   ref
 ) {
-  const inputRef = useRef(null);
   const isComposingRef = useRef(false);
-  const lastCompositionCommitRef = useRef(null);
+  const lastCompositionCommitRef = useRef<string | null>(null);
   const [draft, setDraft] = useState("");
 
-  useImperativeHandle(ref, () => inputRef.current);
-
-  function commitInput(value) {
+  function commitInput(value: string): boolean {
     const chars = [...value].filter(isJapaneseChar);
     if (chars.length === 0) {
       setDraft("");
@@ -24,7 +36,7 @@ const MainInput = forwardRef(function MainInput(
     return true;
   }
 
-  function handlePaste(event) {
+  function handlePaste(event: ClipboardEvent<HTMLInputElement>) {
     event.preventDefault();
     if (disabled) return;
 
@@ -38,11 +50,13 @@ const MainInput = forwardRef(function MainInput(
   const visibleLength = Math.max(1, [...draft].length);
 
   return (
-    <div className={`character-unit composer-unit${disabled ? " is-full" : ""}`}>
+    <div
+      className={`character-unit composer-unit${disabled ? " is-full" : ""}`}
+    >
       <div className="reading-area" aria-hidden="true" />
       <div className="composer-shell">
         <input
-          ref={inputRef}
+          ref={ref}
           type="text"
           className="main-input"
           value={draft}
@@ -87,7 +101,7 @@ const MainInput = forwardRef(function MainInput(
               commitInput(value);
             }
           }}
-          onKeyDown={(event) => {
+          onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
             if (
               event.key === "Backspace" &&
               draft === "" &&
