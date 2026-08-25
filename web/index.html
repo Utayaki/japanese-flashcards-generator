@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Furigana Editor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell font-standard">
+      <header class="topbar">
+        <div class="identity">
+          <span class="identity-jp">振り仮名</span>
+          <span class="identity-en">Japanese writing</span>
+        </div>
+
+        <div class="topbar-actions" aria-label="Editor controls">
+          <div class="font-switch" aria-label="Japanese typeface">
+            <button type="button" data-font="standard" class="is-active" aria-pressed="true">
+              Standard
+            </button>
+            <button type="button" data-font="mincho" aria-pressed="false">Mincho</button>
+          </div>
+          <button class="clear-button hidden" type="button">Clear</button>
+        </div>
+      </header>
+
+      <section class="writing-workspace" aria-label="Japanese writing editor">
+        <div class="instruction-row">
+          <p>Type Japanese. Add kana readings above each kanji.</p>
+          <p class="arrow-hint"><kbd>←</kbd><kbd>→</kbd> move between readings</p>
+        </div>
+
+        <div class="writing-stage">
+          <div class="writing-line">
+            <div class="character-unit composer-unit">
+              <div class="reading-area" aria-hidden="true"></div>
+              <div class="composer-shell">
+                <input
+                  type="text"
+                  class="main-input"
+                  size="1"
+                  placeholder="入力"
+                  aria-label="Japanese text input"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  inputmode="text"
+                  autofocus
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-row" aria-live="polite">
+          <span class="status-spacer" aria-hidden="true"></span>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="editor.js"></script>
+  </body>
+</html>

@@ -1,4 +1,2 @@
 venv/
-node_modules/
-dist/
-.next/
+__pycache__/
