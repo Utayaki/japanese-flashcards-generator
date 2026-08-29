@@ -57,4 +57,29 @@ test.describe("editing", () => {
     await expect(statusRow(page)).not.toContainText("Line full");
     await expect(mainInput(page)).toHaveAttribute("placeholder", "入力");
   });
+
+  test("composing あいこと does not overflow the composer", async ({ page }) => {
+    await gotoEditor(page);
+    await mainInput(page).evaluate((el) => {
+      el.focus();
+      el.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
+      el.value = "あいこと";
+      el.dispatchEvent(
+        new InputEvent("input", {
+          bubbles: true,
+          data: "あいこと",
+          inputType: "insertCompositionText",
+          isComposing: true,
+        })
+      );
+    });
+
+    await expect(characterUnits(page)).toHaveCount(0);
+    await expect(mainInput(page)).toHaveValue("あいこと");
+    await expect
+      .poll(async () =>
+        mainInput(page).evaluate((el) => el.scrollWidth <= el.clientWidth + 1)
+      )
+      .toBe(true);
+  });
 });

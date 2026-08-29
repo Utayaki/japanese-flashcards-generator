@@ -15,30 +15,15 @@ let nextId = 0;
 let isFull = false;
 let limitTimer = 0;
 
-const pageShell = document.querySelector(".page-shell");
 const writingLine = document.querySelector(".writing-line");
 const mirrorLine = document.querySelector(".mirror-line");
 const composerUnit = document.querySelector(".composer-unit");
+const composerShell = document.querySelector(".composer-shell");
 const mainInput = document.querySelector(".main-input");
 const statusRow = document.querySelector(".status-row");
-const compareBoard = document.querySelector(".compare-board");
-const composerSizer = document.querySelector(".composer-sizer");
-const cePlayground = document.querySelector(".width-preview-ce");
-
-const PREVIEW_SAMPLE = "あいこと";
-const CARET_FUDGE = 4;
-const GEOMETRY_CLASSES = {
-  natural: "is-geometry-natural",
-  fixed: "is-geometry-fixed",
-  frame: "is-geometry-frame",
-};
 
 let composingMain = false;
 let lastCompositionCommit = null;
-let activeWidthMode = "current";
-let activeCap = "none";
-let activeGeometry = "";
-let measureCanvasContext = null;
 
 function readingWidth(value) {
   const length = [...value].length;
@@ -59,14 +44,20 @@ function graphemeCount(value) {
   return [...value].length;
 }
 
-function previewText() {
-  return mainInput.value || PREVIEW_SAMPLE;
-}
-
 function kanjiSlotPx() {
   const fromMin = Number.parseFloat(getComputedStyle(composerUnit).minWidth);
   if (Number.isFinite(fromMin) && fromMin > 0) return fromMin;
   return cssPx(getComputedStyle(writingLine), "--kanji-slot", 74);
+}
+
+function usedCharacterWidth() {
+  return [...writingLine.children]
+    .filter(
+      (child) =>
+        child.classList.contains("character-unit") &&
+        !child.classList.contains("composer-unit")
+    )
+    .reduce((total, child) => total + child.getBoundingClientRect().width, 0);
 }
 
 function remainingComposerWidth() {
@@ -74,234 +65,35 @@ function remainingComposerWidth() {
   const padding =
     Number.parseFloat(lineStyle.paddingLeft) + Number.parseFloat(lineStyle.paddingRight);
   const available = writingLine.clientWidth - padding;
-  const usedCharacterWidth = [...writingLine.children]
-    .filter(
-      (child) =>
-        child.classList.contains("character-unit") &&
-        !child.classList.contains("composer-unit")
-    )
-    .reduce((total, child) => total + child.getBoundingClientRect().width, 0);
-  return Math.max(kanjiSlotPx(), available - usedCharacterWidth);
+  return Math.max(kanjiSlotPx(), available - usedCharacterWidth());
 }
 
-function applyWidthCap(width) {
-  if (activeCap === "css") {
-    return Math.min(width, Math.min(340, window.innerWidth * 0.28));
-  }
-  if (activeCap === "line") {
-    return Math.min(width, remainingComposerWidth());
-  }
-  return width;
+function composerShellChromeX() {
+  const style = getComputedStyle(composerShell);
+  return (
+    (Number.parseFloat(style.borderLeftWidth) || 0) +
+    (Number.parseFloat(style.borderRightWidth) || 0) +
+    (Number.parseFloat(style.paddingLeft) || 0) +
+    (Number.parseFloat(style.paddingRight) || 0)
+  );
 }
 
-function panelAFont() {
-  const probe = compareBoard?.querySelector('[data-panel="width"] .width-preview');
-  const cs = getComputedStyle(probe || mainInput);
-  return {
-    family: cs.fontFamily,
-    weight: cs.fontWeight,
-    size: Number.parseFloat(cs.fontSize) || 64,
-    paddingX:
-      (Number.parseFloat(cs.paddingLeft) || 0) + (Number.parseFloat(cs.paddingRight) || 0),
-  };
-}
-
-function configureSizer(font) {
-  if (!composerSizer) return;
-  composerSizer.style.fontFamily = font.family;
-  composerSizer.style.fontSize = `${font.size}px`;
-  composerSizer.style.fontWeight = font.weight;
-  composerSizer.style.letterSpacing = "normal";
-}
-
-function measureSizer(text, font) {
-  if (!composerSizer) return font.size * Math.max(1, graphemeCount(text));
-  configureSizer(font);
-  composerSizer.textContent = text.length ? text : "\u00a0";
-  return composerSizer.offsetWidth;
-}
-
-function measureCanvas(text, font) {
-  if (!measureCanvasContext) {
-    measureCanvasContext = document.createElement("canvas").getContext("2d");
-  }
-  measureCanvasContext.font = `${font.weight} ${font.size}px ${font.family}`;
-  return measureCanvasContext.measureText(text || " ").width;
-}
-
-function formatOverflowCaption(boxWidth, textWidth) {
-  const overflow = Math.max(0, textWidth - boxWidth);
-  const overflowLabel = overflow > 0.5 ? `+${Math.round(overflow)}` : "0";
-  return `box ${Math.round(boxWidth)}px · text ${Math.round(textWidth)}px · overflow ${overflowLabel}px`;
-}
-
-const WIDTH_MODES = {
-  current: {
-    measure(value, font) {
-      const n = Math.max(1, graphemeCount(value));
-      const box = n * measureSizer("0", font) + font.paddingX;
-      return applyWidthCap(Math.max(kanjiSlotPx(), box));
-    },
-    apply(input, value) {
-      input.size = Math.max(1, graphemeCount(value) || 1);
-      input.style.removeProperty("width");
-      input.style.removeProperty("max-width");
-      input.style.removeProperty("field-sizing");
-    },
-  },
-  "em-per-char": {
-    measure(value, font) {
-      const n = Math.max(1, graphemeCount(value));
-      const box = n * font.size + font.paddingX;
-      return applyWidthCap(Math.max(kanjiSlotPx(), box));
-    },
-    apply(input, value) {
-      const cs = getComputedStyle(input);
-      const font = {
-        family: cs.fontFamily,
-        weight: cs.fontWeight,
-        size: Number.parseFloat(cs.fontSize) || 64,
-        paddingX:
-          (Number.parseFloat(cs.paddingLeft) || 0) +
-          (Number.parseFloat(cs.paddingRight) || 0),
-      };
-      const width = value
-        ? WIDTH_MODES["em-per-char"].measure(value, font)
-        : kanjiSlotPx();
-      input.size = 1;
-      input.style.fieldSizing = "fixed";
-      input.style.width = `${width}px`;
-      input.style.maxWidth = "none";
-    },
-  },
-  "sizer-span": {
-    measure(value, font) {
-      const box = measureSizer(value, font) + font.paddingX + CARET_FUDGE;
-      return applyWidthCap(Math.max(kanjiSlotPx(), box));
-    },
-    apply(input, value) {
-      const cs = getComputedStyle(input);
-      const font = {
-        family: cs.fontFamily,
-        weight: cs.fontWeight,
-        size: Number.parseFloat(cs.fontSize) || 64,
-        paddingX:
-          (Number.parseFloat(cs.paddingLeft) || 0) +
-          (Number.parseFloat(cs.paddingRight) || 0),
-      };
-      const width = value
-        ? WIDTH_MODES["sizer-span"].measure(value, font)
-        : kanjiSlotPx();
-      input.size = 1;
-      input.style.fieldSizing = "fixed";
-      input.style.width = `${width}px`;
-      input.style.maxWidth = "none";
-    },
-  },
-  measureText: {
-    measure(value, font) {
-      const box = measureCanvas(value, font) + font.paddingX + CARET_FUDGE;
-      return applyWidthCap(Math.max(kanjiSlotPx(), box));
-    },
-    apply(input, value) {
-      const cs = getComputedStyle(input);
-      const font = {
-        family: cs.fontFamily,
-        weight: cs.fontWeight,
-        size: Number.parseFloat(cs.fontSize) || 64,
-        paddingX:
-          (Number.parseFloat(cs.paddingLeft) || 0) +
-          (Number.parseFloat(cs.paddingRight) || 0),
-      };
-      const width = value
-        ? WIDTH_MODES.measureText.measure(value, font)
-        : kanjiSlotPx();
-      input.size = 1;
-      input.style.fieldSizing = "fixed";
-      input.style.width = `${width}px`;
-      input.style.maxWidth = "none";
-    },
-  },
-};
-
-function applyGeometry(mode) {
-  for (const className of Object.values(GEOMETRY_CLASSES)) {
-    composerUnit.classList.remove(className);
-  }
-  if (mode && GEOMETRY_CLASSES[mode]) {
-    composerUnit.classList.add(GEOMETRY_CLASSES[mode]);
-    pageShell.dataset.composerGeometry = mode;
-  } else {
-    delete pageShell.dataset.composerGeometry;
-  }
-}
-
-function updateCompareSelection() {
-  if (!compareBoard) return;
-  for (const row of compareBoard.querySelectorAll(".compare-row[data-width-mode]")) {
-    const selected = row.dataset.widthMode === activeWidthMode;
-    row.classList.toggle("is-selected", selected);
-    row.setAttribute("aria-pressed", String(selected));
-  }
-  for (const row of compareBoard.querySelectorAll("[data-geometry-mode]")) {
-    if (row.dataset.geometryMode === "contenteditable") continue;
-    const selected = row.dataset.geometryMode === activeGeometry;
-    row.classList.toggle("is-selected", selected);
-    row.setAttribute("aria-pressed", String(selected));
-  }
+function remainingInputWidth() {
+  return Math.max(0, remainingComposerWidth() - composerShellChromeX());
 }
 
 function syncComposerWidth() {
-  pageShell.dataset.composerWidth = activeWidthMode;
-  pageShell.dataset.widthCap = activeCap;
-  if (activeCap === "line") {
-    pageShell.style.setProperty("--composer-line-cap", `${remainingComposerWidth()}px`);
-  } else {
-    pageShell.style.removeProperty("--composer-line-cap");
-  }
-  WIDTH_MODES[activeWidthMode].apply(mainInput, mainInput.value);
-}
-
-function syncComparePreviews() {
-  if (!compareBoard) return;
-  const text = previewText();
-  const font = panelAFont();
-  const textWidth = measureSizer(text, font);
-
-  for (const row of compareBoard.querySelectorAll(".compare-row[data-width-mode]")) {
-    const mode = row.dataset.widthMode;
-    const box = WIDTH_MODES[mode].measure(text, font);
-    const preview = row.querySelector(".width-preview");
-    const caption = row.querySelector(".compare-caption");
-    const label = row.querySelector(".width-preview-text");
-    preview.style.width = `${box}px`;
-    label.textContent = text;
-    caption.textContent = formatOverflowCaption(box, textWidth);
-  }
-
-  for (const row of compareBoard.querySelectorAll("[data-geometry-mode]")) {
-    if (row.dataset.geometryMode === "contenteditable") continue;
-    const preview = row.querySelector(".width-preview");
-    const label = row.querySelector(".width-preview-text");
-    const caption = row.querySelector(".compare-caption");
-    label.textContent = text;
-    preview.style.width = "max-content";
-    const box = preview.getBoundingClientRect();
-    const labelBox = label.getBoundingClientRect();
-    const fontSize = Number.parseFloat(getComputedStyle(preview).fontSize) || 0;
-    const overflow = Math.max(0, labelBox.width - box.width);
-    const overflowLabel = overflow > 0.5 ? `+${Math.round(overflow)}` : "0";
-    caption.textContent = `box ${Math.round(box.width)}px · text ${Math.round(labelBox.width)}px · overflow ${overflowLabel}px · boxH ${Math.round(box.height)}px · font ${Math.round(fontSize)}px`;
-  }
-
-  if (cePlayground && document.activeElement !== cePlayground) {
-    cePlayground.textContent = text;
-  }
-}
-
-function syncComposerChrome() {
-  syncComposerWidth();
-  syncComparePreviews();
+  const slot = kanjiSlotPx();
+  const style = getComputedStyle(mainInput);
+  const fontSize = Number.parseFloat(style.fontSize) || 64;
+  const paddingX =
+    (Number.parseFloat(style.paddingLeft) || 0) +
+    (Number.parseFloat(style.paddingRight) || 0);
+  const needed = mainInput.value
+    ? graphemeCount(mainInput.value) * fontSize + paddingX
+    : slot;
+  const width = Math.min(remainingInputWidth(), Math.max(slot, needed));
+  mainInput.style.width = `${width}px`;
 }
 
 function getLineMetrics() {
@@ -317,17 +109,9 @@ function getLineMetrics() {
   const padding =
     Number.parseFloat(lineStyle.paddingLeft) + Number.parseFloat(lineStyle.paddingRight);
 
-  const usedCharacterWidth = [...writingLine.children]
-    .filter(
-      (child) =>
-        child.classList.contains("character-unit") &&
-        !child.classList.contains("composer-unit")
-    )
-    .reduce((total, child) => total + child.getBoundingClientRect().width, 0);
-
   return {
     available: writingLine.clientWidth - padding,
-    used: usedCharacterWidth + kanjiSlot,
+    used: usedCharacterWidth() + kanjiSlot,
     kanjiWidth: Math.max(kanjiSlot, readingReserve),
     kanaWidth: kanaSlot,
   };
@@ -526,7 +310,7 @@ function removeLast() {
   if (characters.length === 0) return;
   characters.pop();
   syncWritingLine();
-  syncComposerChrome();
+  syncComposerWidth();
 }
 
 function focusFuriganaAt(index) {
@@ -555,11 +339,11 @@ function commitMainInput(value) {
   const chars = [...value].filter(isJapaneseChar);
   mainInput.value = "";
   if (chars.length === 0) {
-    queueMicrotask(syncComposerChrome);
+    queueMicrotask(syncComposerWidth);
     return false;
   }
   addCharacters(chars);
-  queueMicrotask(syncComposerChrome);
+  queueMicrotask(syncComposerWidth);
   return true;
 }
 
@@ -577,14 +361,14 @@ mainInput.addEventListener("compositionstart", () => {
 });
 
 mainInput.addEventListener("compositionupdate", () => {
-  syncComposerChrome();
+  syncComposerWidth();
 });
 
 mainInput.addEventListener("compositionend", (event) => {
   composingMain = false;
   if (isFull) {
     mainInput.value = "";
-    syncComposerChrome();
+    syncComposerWidth();
     return;
   }
   const value = event.currentTarget.value;
@@ -595,14 +379,14 @@ mainInput.addEventListener("compositionend", (event) => {
 mainInput.addEventListener("input", (event) => {
   if (isFull) {
     mainInput.value = "";
-    syncComposerChrome();
+    syncComposerWidth();
     return;
   }
 
   const value = event.currentTarget.value;
   if (lastCompositionCommit === value) {
     lastCompositionCommit = null;
-    syncComposerChrome();
+    syncComposerWidth();
     return;
   }
   lastCompositionCommit = null;
@@ -612,7 +396,7 @@ mainInput.addEventListener("input", (event) => {
     return;
   }
 
-  syncComposerChrome();
+  syncComposerWidth();
 });
 
 mainInput.addEventListener("keydown", (event) => {
@@ -633,52 +417,20 @@ mainInput.addEventListener("paste", (event) => {
   if (!pasted) return;
   addCharacters([...pasted]);
   mainInput.value = "";
-  queueMicrotask(syncComposerChrome);
+  queueMicrotask(syncComposerWidth);
 });
-
-if (compareBoard) {
-  compareBoard.addEventListener("click", (event) => {
-    if (event.target.closest(".width-preview-ce")) return;
-    if (event.target.closest(".compare-caps")) return;
-
-    const widthRow = event.target.closest(".compare-row[data-width-mode]");
-    if (widthRow) {
-      activeWidthMode = widthRow.dataset.widthMode;
-      updateCompareSelection();
-      syncComposerChrome();
-      mainInput.focus();
-      return;
-    }
-
-    const geometryRow = event.target.closest(".compare-row[data-geometry-mode]");
-    if (!geometryRow) return;
-    const mode = geometryRow.dataset.geometryMode;
-    if (mode === "contenteditable") return;
-    activeGeometry = activeGeometry === mode ? "" : mode;
-    applyGeometry(activeGeometry);
-    updateCompareSelection();
-    syncComposerChrome();
-    mainInput.focus();
-  });
-
-  compareBoard.addEventListener("change", (event) => {
-    if (event.target.name !== "width-cap") return;
-    activeCap = event.target.value;
-    syncComposerChrome();
-  });
-}
 
 if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(() => {
     recalculateFull();
-    syncComposerChrome();
+    syncComposerWidth();
   }).observe(writingLine);
 }
 
 if (document.fonts?.ready) {
-  document.fonts.ready.then(() => syncComposerChrome());
+  document.fonts.ready.then(() => syncComposerWidth());
 }
 
 recalculateFull();
-syncComposerChrome();
+syncComposerWidth();
 mainInput.focus();

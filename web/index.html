@@ -10,10 +10,10 @@
       href="https://fonts.googleapis.com/css2?family=Klee+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=6" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="page-shell" data-composer-width="current" data-width-cap="none">
+    <main class="page-shell">
       <section class="writing-workspace" aria-label="Japanese writing editor">
         <div class="writing-stage">
           <div class="writing-line">
@@ -23,7 +23,6 @@
                 <input
                   type="text"
                   class="main-input"
-                  size="1"
                   placeholder="入力"
                   aria-label="Japanese text input"
                   autocomplete="off"
@@ -42,165 +41,8 @@
         <div class="status-row" aria-live="polite">
           <span class="status-spacer" aria-hidden="true"></span>
         </div>
-
-        <section class="compare-board" aria-label="Composer comparison">
-          <section class="compare-panel" data-panel="width">
-            <div class="compare-panel-head">
-              <div>
-                <h2 class="compare-panel-title">Panel A — horizontal width</h2>
-                <p class="compare-panel-hint">
-                  The screenshot bug. Click a row to apply it to the live composer.
-                </p>
-              </div>
-              <fieldset class="compare-caps">
-                <legend class="compare-caps-legend">cap</legend>
-                <label class="compare-cap">
-                  <input type="radio" name="width-cap" value="none" checked />
-                  none
-                </label>
-                <label class="compare-cap">
-                  <input type="radio" name="width-cap" value="css" />
-                  340px / 28vw
-                </label>
-                <label class="compare-cap">
-                  <input type="radio" name="width-cap" value="line" />
-                  remaining line
-                </label>
-              </fieldset>
-            </div>
-
-            <div class="compare-rows">
-              <button
-                type="button"
-                class="compare-row is-selected"
-                data-width-mode="current"
-                aria-pressed="true"
-              >
-                <div class="compare-meta">
-                  <span class="compare-name">current</span>
-                  <span class="compare-desc">size + field-sizing + max 340px</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-
-              <button type="button" class="compare-row" data-width-mode="em-per-char" aria-pressed="false">
-                <div class="compare-meta">
-                  <span class="compare-name">em × n</span>
-                  <span class="compare-desc">max(slot, n×1em + padding)</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-
-              <button type="button" class="compare-row" data-width-mode="sizer-span" aria-pressed="false">
-                <div class="compare-meta">
-                  <span class="compare-name">sizer span</span>
-                  <span class="compare-desc">hidden span, same font</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-
-              <button type="button" class="compare-row" data-width-mode="measureText" aria-pressed="false">
-                <div class="compare-meta">
-                  <span class="compare-name">measureText</span>
-                  <span class="compare-desc">canvas, Klee One</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </section>
-
-          <section class="compare-panel" data-panel="geometry">
-            <div class="compare-panel-head">
-              <div>
-                <h2 class="compare-panel-title">Panel B — ChatGPT geometry / chrome</h2>
-                <p class="compare-panel-hint">
-                  Height and frame. Click 1–3 to restyle the live composer. Contenteditable is a
-                  playground only.
-                </p>
-              </div>
-            </div>
-
-            <div class="compare-rows">
-              <button type="button" class="compare-row" data-geometry-mode="natural" aria-pressed="false">
-                <div class="compare-meta">
-                  <span class="compare-name">natural-height</span>
-                  <span class="compare-desc">height auto, line-height 1.2, em padding</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview is-geometry-natural">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-
-              <button type="button" class="compare-row" data-geometry-mode="fixed" aria-pressed="false">
-                <div class="compare-meta">
-                  <span class="compare-name">fixed-budget</span>
-                  <span class="compare-desc">height 88px, font 64px, padding-block</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview is-geometry-fixed">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-
-              <button type="button" class="compare-row" data-geometry-mode="frame" aria-pressed="false">
-                <div class="compare-meta">
-                  <span class="compare-name">frame wrapper</span>
-                  <span class="compare-desc">border on the frame, input borderless</span>
-                  <span class="compare-caption"></span>
-                </div>
-                <div class="compare-stage">
-                  <div class="width-preview is-geometry-frame">
-                    <span class="width-preview-text"></span>
-                  </div>
-                </div>
-              </button>
-
-              <div class="compare-row compare-row-static" data-geometry-mode="contenteditable">
-                <div class="compare-meta">
-                  <span class="compare-name">contenteditable</span>
-                  <span class="compare-desc">playground — not wired to commit</span>
-                  <span class="compare-caption">type / IME here; does not add characters</span>
-                </div>
-                <div class="compare-stage">
-                  <div
-                    class="width-preview-ce"
-                    contenteditable="true"
-                    role="textbox"
-                    aria-label="contenteditable playground"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </section>
       </section>
     </main>
-    <span class="composer-sizer" aria-hidden="true"></span>
-    <script type="module" src="editor.js?v=6"></script>
+    <script type="module" src="editor.js"></script>
   </body>
 </html>

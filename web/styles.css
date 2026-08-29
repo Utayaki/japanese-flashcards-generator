@@ -256,17 +256,25 @@ input:focus-visible {
   height: var(--kanji-size);
   display: grid;
   align-items: end;
+  padding: 0;
+  border: 0;
+  outline: 1px solid #e7aaa0;
+}
+
+.composer-shell:focus-within {
+  outline: 3px solid rgba(154, 48, 43, 0.34);
+  outline-offset: 2px;
 }
 
 .main-input {
   width: auto;
-  min-width: var(--kanji-slot);
+  min-width: 0;
   max-width: none;
   field-sizing: fixed;
   height: var(--kanji-size);
   border: 0;
   outline: 0;
-  padding: 0 7px 2px;
+  padding: 0;
   background: transparent;
   color: var(--ink);
   font-family: var(--write-font);
@@ -277,16 +285,8 @@ input:focus-visible {
   caret-color: var(--accent);
 }
 
-.page-shell[data-composer-width="current"] .main-input {
-  field-sizing: content;
-}
-
-.page-shell[data-composer-width="current"][data-width-cap="css"] .main-input {
-  max-width: min(340px, 28vw);
-}
-
-.page-shell[data-composer-width="current"][data-width-cap="line"] .main-input {
-  max-width: var(--composer-line-cap);
+.main-input:focus-visible {
+  outline: none;
 }
 
 .main-input::placeholder {
@@ -305,48 +305,6 @@ input:focus-visible {
   color: var(--accent);
 }
 
-.composer-unit.is-geometry-natural .composer-shell {
-  height: auto;
-  min-height: 1.5em;
-}
-
-.composer-unit.is-geometry-natural .main-input {
-  height: auto;
-  min-height: 1.5em;
-  font-size: 4rem;
-  line-height: 1.2;
-  padding: 0.08em 0.12em 0.15em;
-}
-
-.composer-unit.is-geometry-fixed .composer-shell {
-  height: 88px;
-}
-
-.composer-unit.is-geometry-fixed .main-input {
-  height: 88px;
-  font-size: 64px;
-  line-height: 1.1;
-  padding-inline: 10px;
-  padding-block: 6px 9px;
-}
-
-.composer-unit.is-geometry-frame .composer-shell {
-  height: auto;
-  min-height: var(--kanji-size);
-  border: 1px solid #e7aaa0;
-  box-sizing: border-box;
-  padding: 6px 10px 8px;
-}
-
-.page-shell[data-composer-geometry="frame"] .composer-shell {
-  outline: 3px solid rgba(154, 48, 43, 0.34);
-  outline-offset: 2px;
-}
-
-.page-shell[data-composer-geometry="frame"] .main-input:focus-visible {
-  outline: none;
-}
-
 .status-row {
   min-height: 30px;
   display: flex;
@@ -363,231 +321,6 @@ input:focus-visible {
 
 .status-spacer {
   height: 1px;
-}
-
-.composer-sizer {
-  position: absolute;
-  left: -9999px;
-  top: 0;
-  visibility: hidden;
-  pointer-events: none;
-  white-space: nowrap;
-  height: auto;
-  width: auto;
-}
-
-.compare-board {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  margin-top: 28px;
-  padding-top: 8px;
-}
-
-.compare-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.compare-panel-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px 24px;
-}
-
-.compare-panel-title {
-  margin: 0;
-  color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 720;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.compare-panel-hint {
-  margin: 6px 0 0;
-  max-width: 52rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.45;
-}
-
-.compare-caps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.compare-caps-legend {
-  padding: 0;
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 720;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.compare-cap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 520;
-  cursor: pointer;
-}
-
-.compare-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.compare-row {
-  appearance: none;
-  display: grid;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-  gap: 16px 20px;
-  align-items: end;
-  width: 100%;
-  margin: 0;
-  padding: 12px 14px 14px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.28);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.compare-row:hover {
-  border-color: rgba(23, 23, 20, 0.12);
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.compare-row.is-selected {
-  border-color: rgba(154, 48, 43, 0.28);
-  background: var(--paper-deep);
-}
-
-.compare-row-static {
-  cursor: default;
-}
-
-.compare-row-static:hover {
-  border-color: transparent;
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.compare-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.compare-name {
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 720;
-}
-
-.compare-row.is-selected .compare-name {
-  color: var(--accent);
-}
-
-.compare-desc,
-.compare-caption {
-  color: var(--muted);
-  font-size: 0.72rem;
-  line-height: 1.35;
-}
-
-.compare-caption {
-  font-variant-numeric: tabular-nums;
-}
-
-.compare-stage {
-  min-width: 0;
-  overflow: visible;
-  padding: 8px 4px 6px;
-}
-
-.width-preview {
-  box-sizing: border-box;
-  display: flex;
-  flex: 0 0 auto;
-  align-items: flex-end;
-  min-width: var(--kanji-slot);
-  min-height: var(--kanji-size);
-  padding: 0 7px 2px;
-  outline: 2px solid rgba(154, 48, 43, 0.55);
-  overflow: visible;
-  color: var(--ink);
-  font-family: var(--write-font);
-  font-weight: var(--write-weight);
-  font-size: var(--kanji-size);
-  line-height: 0.96;
-  white-space: nowrap;
-}
-
-.width-preview-text {
-  display: block;
-  white-space: nowrap;
-}
-
-.width-preview.is-geometry-natural {
-  height: auto;
-  min-height: 1.5em;
-  padding: 0.08em 0.12em 0.15em;
-  font-size: 4rem;
-  line-height: 1.2;
-}
-
-.width-preview.is-geometry-fixed {
-  height: 88px;
-  min-height: 88px;
-  padding-inline: 10px;
-  padding-block: 6px 9px;
-  font-size: 64px;
-  line-height: 1.1;
-}
-
-.width-preview.is-geometry-frame {
-  outline: none;
-  border: 1px solid #e7aaa0;
-  padding: 6px 10px 8px;
-  font-size: 64px;
-  line-height: 1.2;
-}
-
-.width-preview-ce {
-  box-sizing: border-box;
-  width: max-content;
-  max-width: 100%;
-  min-width: var(--kanji-slot);
-  min-height: var(--kanji-size);
-  padding: 0.08em 0.12em;
-  outline: 2px solid rgba(154, 48, 43, 0.55);
-  color: var(--ink);
-  font-family: var(--write-font);
-  font-weight: var(--write-weight);
-  font-size: var(--kanji-size);
-  line-height: 1.2;
-  white-space: nowrap;
-  caret-color: var(--accent);
-}
-
-.width-preview-ce:focus-visible {
-  outline: 3px solid rgba(154, 48, 43, 0.34);
-  outline-offset: 2px;
 }
 
 @media (max-width: 900px) {
@@ -619,11 +352,6 @@ input:focus-visible {
   .mirror-line {
     overflow: hidden;
     padding-inline: 2px;
-  }
-
-  .compare-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
   }
 }
 
