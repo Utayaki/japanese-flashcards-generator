@@ -19,10 +19,10 @@
   --accent: #9a302b;
   --mirror: rgba(23, 23, 20, 0.38);
   --kanji-size: clamp(4rem, 6.1vw, 5.5rem);
-  --kana-size: calc(var(--kanji-size) * 0.7);
+  --kana-size: calc(var(--kanji-size) * 0.85);
   --furigana-size: clamp(0.88rem, 1.2vw, 1.05rem);
   --kanji-slot: clamp(74px, 6.3vw, 96px);
-  --kana-slot: calc(var(--kanji-slot) * 0.72);
+  --kana-slot: calc(var(--kanji-slot) * 0.85);
   --reading-height: 42px;
   --reading-max: 82px;
 }

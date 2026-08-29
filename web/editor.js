@@ -57,7 +57,7 @@ function getLineMetrics() {
     available: writingLine.clientWidth - padding,
     used: usedCharacterWidth + composerWidth,
     kanjiWidth: Math.max(composerWidth, readingReserve),
-    kanaWidth: composerWidth * 0.72,
+    kanaWidth: composerWidth * 0.85,
   };
 }
 
