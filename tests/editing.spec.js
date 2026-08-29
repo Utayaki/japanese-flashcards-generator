@@ -48,4 +48,13 @@ test.describe("editing", () => {
     await page.keyboard.insertText("す");
     await expect(characterUnits(page)).toHaveCount(12);
   });
+
+  test("bulk kana commit is not treated as line-full", async ({ page }) => {
+    await gotoEditor(page);
+    await typeJapanese(page, "あいうえおかきくけこ");
+
+    await expect(characterUnits(page)).toHaveCount(10);
+    await expect(statusRow(page)).not.toContainText("Line full");
+    await expect(mainInput(page)).toHaveAttribute("placeholder", "入力");
+  });
 });

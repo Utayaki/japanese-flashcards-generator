@@ -34,14 +34,21 @@ function furiganaIds() {
   return characters.filter((entry) => isKanji(entry.char)).map((entry) => entry.id);
 }
 
+function cssPx(style, name, fallback) {
+  const parsed = Number.parseFloat(style.getPropertyValue(name));
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 function getLineMetrics() {
-  const composer = writingLine.querySelector(".composer-unit");
-  if (!composer) return null;
+  if (!composerUnit) return null;
 
   const lineStyle = window.getComputedStyle(writingLine);
-  const composerWidth = composer.getBoundingClientRect().width;
-  const readingReserve =
-    Number.parseFloat(lineStyle.getPropertyValue("--reading-max")) || composerWidth;
+  const composerStyle = window.getComputedStyle(composerUnit);
+  const kanjiSlot =
+    Number.parseFloat(composerStyle.minWidth) ||
+    cssPx(lineStyle, "--kanji-slot", 74);
+  const readingReserve = cssPx(lineStyle, "--reading-max", kanjiSlot);
+  const kanaSlot = cssPx(lineStyle, "--kana-slot", kanjiSlot * 0.85);
   const padding =
     Number.parseFloat(lineStyle.paddingLeft) + Number.parseFloat(lineStyle.paddingRight);
 
@@ -55,9 +62,9 @@ function getLineMetrics() {
 
   return {
     available: writingLine.clientWidth - padding,
-    used: usedCharacterWidth + composerWidth,
-    kanjiWidth: Math.max(composerWidth, readingReserve),
-    kanaWidth: composerWidth * 0.85,
+    used: usedCharacterWidth + kanjiSlot,
+    kanjiWidth: Math.max(kanjiSlot, readingReserve),
+    kanaWidth: kanaSlot,
   };
 }
 
