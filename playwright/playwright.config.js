@@ -1,3 +1,4 @@
+import path from "path";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 8000;
@@ -5,11 +6,12 @@ const baseURL = `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests",
+  outputDir: "./test-results",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [["list"], ["html"]],
+  reporter: [["list"], ["html", { outputFolder: "./playwright-report" }]],
   use: {
     baseURL,
     viewport: { width: 1280, height: 720 },
@@ -33,6 +35,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "python3 server.py",
+    cwd: path.join(__dirname, ".."),
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },

@@ -1,7 +1,14 @@
 venv/
 __pycache__/
-node_modules/
-test-results/
-playwright-report/
-blob-report/
+
+playwright/node_modules/
+playwright/test-results/
+playwright/playwright-report/
+playwright/blob-report/
 playwright/.cache/
+
+# leftover artifacts from before Playwright lived in playwright/
+/node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
