@@ -1,0 +1,65 @@
+.gallery-bar {
+  width: min(1440px, 100%);
+  align-self: center;
+  padding: clamp(22px, 4vh, 36px) clamp(24px, 6vw, 88px) 0;
+}
+
+.nominal-button {
+  display: inline-block;
+  padding: 8px 18px 9px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 720;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nominal-button:hover {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.gallery {
+  width: min(1440px, 100%);
+  flex: 1;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 5vh, 48px);
+  padding: clamp(28px, 5vh, 56px) clamp(24px, 6vw, 88px) clamp(48px, 8vh, 80px);
+}
+
+.gallery-card {
+  width: 100%;
+  --kanji-size: clamp(2.15rem, 3.8vw, 2.75rem);
+  --kana-size: calc(var(--kanji-size) * 0.85);
+  --furigana-size: 0.72rem;
+  --kanji-slot: clamp(42px, 4vw, 54px);
+  --kana-slot: calc(var(--kanji-slot) * 0.85);
+  --reading-height: 26px;
+  --reading-max: 54px;
+  --seam-rail: 0px;
+}
+
+.gallery-card .writing-line {
+  cursor: default;
+}
+
+.gallery-explanation {
+  margin: 4px 8px 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 430;
+  line-height: 1.45;
+}
+
+@media (max-width: 620px) {
+  .gallery-bar,
+  .gallery {
+    padding-inline: 16px;
+  }
+}

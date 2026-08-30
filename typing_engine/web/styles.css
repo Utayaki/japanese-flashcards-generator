@@ -1,0 +1,353 @@
+input:not(.main-input) {
+  font: inherit;
+}
+
+.top-bar {
+  width: min(1440px, 100%);
+  align-self: center;
+  padding: clamp(18px, 3vh, 28px) clamp(24px, 6vw, 88px) 0;
+}
+
+.back-link {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.writing-workspace {
+  width: min(1440px, 100%);
+  flex: 1;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: clamp(28px, 5vh, 64px) clamp(24px, 6vw, 88px) clamp(38px, 6vh, 72px);
+}
+
+.writing-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.writing-line {
+  cursor: text;
+}
+
+.mirror-line {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--kanji-size) + 18px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 8px 14px;
+  cursor: text;
+  user-select: none;
+}
+
+.mirror-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 1px;
+  background: var(--mirror-rule);
+}
+
+.mirror-unit {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: var(--kanji-slot);
+  display: grid;
+  justify-items: center;
+  align-items: end;
+}
+
+.mirror-unit.in-stitch.has-reading {
+  width: var(--kanji-slot);
+}
+
+.mirror-char {
+  display: block;
+  overflow: visible;
+  color: var(--mirror);
+  font-family: var(--mirror-font);
+  font-weight: var(--mirror-weight);
+  line-height: 0.96;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.composer-unit {
+  width: auto;
+  min-width: var(--kanji-slot);
+}
+
+.composer-shell {
+  width: auto;
+  min-width: var(--kanji-slot);
+  height: var(--kanji-size);
+  display: grid;
+  align-items: end;
+  padding: 0;
+  border: 0;
+  outline: 1px solid var(--composer-edge);
+}
+
+.composer-shell:focus-within {
+  outline: 3px solid var(--accent-glow);
+  outline-offset: 2px;
+}
+
+.main-input {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  field-sizing: fixed;
+  height: var(--kanji-size);
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--write-font);
+  font-weight: var(--write-weight);
+  font-size: var(--kanji-size);
+  line-height: 0.96;
+  text-align: left;
+  caret-color: var(--accent);
+}
+
+.main-input:focus-visible {
+  outline: none;
+}
+
+.main-input::placeholder {
+  color: var(--placeholder);
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+}
+
+.composer-unit.is-full .main-input {
+  cursor: not-allowed;
+}
+
+.composer-unit.is-full .main-input::placeholder {
+  color: var(--accent);
+}
+
+.explanation-input {
+  width: 100%;
+  margin-top: 18px;
+  border: 0;
+  border-bottom: 1px solid var(--control-light);
+  border-radius: 0;
+  outline: none;
+  padding: 8px 2px 10px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 450;
+  caret-color: var(--accent);
+}
+
+.explanation-input::placeholder {
+  color: var(--placeholder);
+  font-weight: 500;
+}
+
+.explanation-input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.explanation-input:read-only {
+  color: var(--muted);
+  caret-color: transparent;
+}
+
+.status-row {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.limit-message,
+.save-error,
+.status-message {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 720;
+  letter-spacing: 0.015em;
+  flex: 1;
+}
+
+.status-spacer {
+  height: 1px;
+  flex: 1;
+}
+
+.accept-button {
+  margin: 0;
+  padding: 6px 14px 7px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 720;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.accept-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.accept-button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.seam-control {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 11px;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: 1;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.seam-control:disabled {
+  cursor: default;
+}
+
+.seam-control:hover {
+  border-color: var(--accent);
+}
+
+.seam-control.is-unchain {
+  width: 26px;
+  height: 12px;
+  border: 0;
+  background: transparent;
+}
+
+.seam-control.is-unchain:hover::before,
+.seam-control.is-unchain:hover::after {
+  border-color: var(--accent);
+}
+
+.seam-control.is-unchain::before,
+.seam-control.is-unchain::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+}
+
+.seam-control.is-unchain::before {
+  left: 0;
+}
+
+.seam-control.is-unchain::after {
+  right: 0;
+}
+
+.character-unit > .seam-control.is-open {
+  left: 0;
+  top: calc(var(--reading-height) * 0.5);
+  transform: translate(-50%, -50%);
+}
+
+.stitch-group > .seam-control.is-open {
+  left: 0;
+  top: calc(var(--seam-rail) + var(--reading-height) * 0.5);
+  transform: translate(-50%, -50%);
+}
+
+.stitch-group .seam-control.is-unchain {
+  top: 0;
+  transform: translate(-50%, calc(-100% - 8px));
+}
+
+.is-stale .writing-line,
+.is-stale .mirror-line {
+  cursor: default;
+}
+
+.is-stale .seam-control,
+.is-stale .composer-unit {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --kanji-size: clamp(3.25rem, 8.6vw, 4.5rem);
+    --kanji-slot: clamp(64px, 10vw, 82px);
+    --reading-height: 40px;
+    --reading-max: 76px;
+  }
+
+  .top-bar,
+  .writing-workspace {
+    padding-inline: 24px;
+  }
+}
+
+@media (max-width: 620px) {
+  :root {
+    --kanji-size: 3.15rem;
+    --kanji-slot: 62px;
+    --furigana-size: 0.78rem;
+    --reading-max: 62px;
+  }
+
+  .writing-workspace {
+    padding: 24px 16px 28px;
+  }
+
+  .writing-line,
+  .mirror-line {
+    overflow: visible;
+    padding-inline: 2px;
+  }
+}

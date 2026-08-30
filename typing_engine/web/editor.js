@@ -4,7 +4,9 @@ import {
   isAllowed,
   isKana,
   isKanji,
-} from "./japanese.js";
+} from "/shared/japanese.js";
+import { renderWritingLine } from "/shared/render.js";
+import { initTheme } from "/shared/theme.js";
 
 const MAX_CHARACTERS = 12;
 const MIN_READING_WIDTH = 54;
@@ -19,15 +21,19 @@ let isFull = false;
 let limitTimer = 0;
 let pendingFuriganaFocus = null;
 
+const writingWorkspace = document.querySelector(".writing-workspace");
 const writingLine = document.querySelector(".writing-line");
 const mirrorLine = document.querySelector(".mirror-line");
 const composerUnit = document.querySelector(".composer-unit");
 const composerShell = document.querySelector(".composer-shell");
 const mainInput = document.querySelector(".main-input");
-const statusRow = document.querySelector(".status-row");
+const statusMessage = document.querySelector(".status-message");
+const explanationInput = document.querySelector(".explanation-input");
+const acceptButton = document.querySelector(".accept-button");
 
 let composingMain = false;
 let lastCompositionCommit = null;
+let stale = false;
 
 function seamKey(leftId, rightId) {
   return `${leftId}:${rightId}`;
@@ -210,12 +216,84 @@ function recalculateFull() {
 }
 
 function updateStatus() {
+  if (stale) return;
   if (limitTimer || isFull) {
-    statusRow.innerHTML =
-      '<span class="limit-message">Line full · Backspace to continue</span>';
+    statusMessage.textContent = "Line full · Backspace to continue";
+    statusMessage.className = "status-message limit-message";
   } else {
-    statusRow.innerHTML = '<span class="status-spacer" aria-hidden="true"></span>';
+    statusMessage.textContent = "";
+    statusMessage.className = "status-message";
   }
+  updateAcceptState();
+}
+
+function showSaveError(message) {
+  statusMessage.textContent = message;
+  statusMessage.className = "status-message save-error";
+}
+
+function canAccept() {
+  return (
+    !stale &&
+    !composingMain &&
+    characters.length > 0 &&
+    explanationInput.value.trim().length > 0
+  );
+}
+
+function updateAcceptState() {
+  acceptButton.disabled = !canAccept();
+}
+
+function spellingFromState() {
+  return characters.map((entry) => entry.char).join("");
+}
+
+function readingMappingsFromState() {
+  return readingGroups().map((group) => ({
+    kanji: group.members.map((member) => member.char).join(""),
+    kana: group.members[0].furigana,
+  }));
+}
+
+async function acceptWord() {
+  if (!canAccept()) return;
+  acceptButton.disabled = true;
+  const payload = {
+    spelling: spellingFromState(),
+    explanation: explanationInput.value.trim(),
+    readingMappings: readingMappingsFromState(),
+  };
+  try {
+    const response = await fetch("/api/words", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Could not save");
+    }
+    freezeAccepted(data.word);
+  } catch (error) {
+    showSaveError(error instanceof Error ? error.message : "Could not save");
+    updateAcceptState();
+  }
+}
+
+function freezeAccepted(word) {
+  stale = true;
+  window.clearTimeout(limitTimer);
+  limitTimer = 0;
+  writingWorkspace.classList.add("is-stale");
+  const frozen = renderWritingLine(word);
+  writingLine.replaceChildren(...frozen.children);
+  writingLine.className = frozen.className;
+  explanationInput.readOnly = true;
+  acceptButton.disabled = true;
+  statusMessage.textContent = "";
+  statusMessage.className = "status-message";
+  syncMirrorLine();
 }
 
 function showLimitNotice() {
@@ -483,6 +561,7 @@ function assignGroupReading(group, value) {
 }
 
 function stitchSeam(leftId, rightId) {
+  if (stale) return;
   const leftGroup = groupContaining(leftId);
   const rightGroup = groupContaining(rightId);
   if (!leftGroup || !rightGroup) return;
@@ -495,6 +574,7 @@ function stitchSeam(leftId, rightId) {
 }
 
 function unchainSeam(leftId, rightId) {
+  if (stale) return;
   const group = groupContaining(leftId);
   if (!group) return;
   const reading = group.members[0].furigana;
@@ -508,6 +588,7 @@ function unchainSeam(leftId, rightId) {
 }
 
 function syncWritingLine() {
+  if (stale) return;
   pruneStitches();
   const focusState = captureFuriganaFocus();
 
@@ -546,6 +627,7 @@ function syncWritingLine() {
 }
 
 function addCharacters(chars) {
+  if (stale) return;
   const metrics = getLineMetrics();
   let remainingWidth = metrics ? metrics.available - metrics.used : Number.POSITIVE_INFINITY;
   let remainingCount = MAX_CHARACTERS - characters.length;
@@ -574,6 +656,7 @@ function addCharacters(chars) {
 }
 
 function removeLast() {
+  if (stale) return;
   window.clearTimeout(limitTimer);
   limitTimer = 0;
   if (characters.length === 0) return;
@@ -621,6 +704,7 @@ function commitMainInput(value) {
 }
 
 function focusMainInput() {
+  if (stale) return;
   mainInput.focus();
 }
 
@@ -630,11 +714,17 @@ mirrorLine.addEventListener("click", focusMainInput);
 mainInput.addEventListener("click", (event) => event.stopPropagation());
 
 mainInput.addEventListener("beforeinput", (event) => {
+  if (stale) {
+    event.preventDefault();
+    return;
+  }
   rejectInsert(event, isAllowed, composingMain);
 });
 
 mainInput.addEventListener("compositionstart", () => {
+  if (stale) return;
   if (!isFull) composingMain = true;
+  updateAcceptState();
 });
 
 mainInput.addEventListener("compositionupdate", () => {
@@ -643,18 +733,20 @@ mainInput.addEventListener("compositionupdate", () => {
 
 mainInput.addEventListener("compositionend", (event) => {
   composingMain = false;
-  if (isFull) {
+  if (stale || isFull) {
     mainInput.value = "";
     syncComposerWidth();
+    updateAcceptState();
     return;
   }
   const value = event.currentTarget.value;
   const committed = commitMainInput(value);
   lastCompositionCommit = committed ? value : null;
+  updateAcceptState();
 });
 
 mainInput.addEventListener("input", (event) => {
-  if (isFull) {
+  if (stale || isFull) {
     mainInput.value = "";
     syncComposerWidth();
     return;
@@ -677,6 +769,7 @@ mainInput.addEventListener("input", (event) => {
 });
 
 mainInput.addEventListener("keydown", (event) => {
+  if (stale) return;
   if (event.key === "Backspace" && mainInput.value === "" && !composingMain) {
     event.preventDefault();
     removeLast();
@@ -689,7 +782,7 @@ mainInput.addEventListener("keydown", (event) => {
 
 mainInput.addEventListener("paste", (event) => {
   event.preventDefault();
-  if (isFull) return;
+  if (stale || isFull) return;
   const pasted = filterAllowed(event.clipboardData.getData("text"));
   if (!pasted) return;
   addCharacters([...pasted]);
@@ -699,15 +792,31 @@ mainInput.addEventListener("paste", (event) => {
 
 if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(() => {
+    if (stale) return;
     recalculateFull();
     syncComposerWidth();
   }).observe(writingLine);
 }
 
 if (document.fonts?.ready) {
-  document.fonts.ready.then(() => syncComposerWidth());
+  document.fonts.ready.then(() => {
+    if (!stale) syncComposerWidth();
+  });
 }
 
+explanationInput.addEventListener("input", () => {
+  if (!stale && !limitTimer && !isFull) {
+    statusMessage.textContent = "";
+    statusMessage.className = "status-message";
+  }
+  updateAcceptState();
+});
+acceptButton.addEventListener("click", () => {
+  void acceptWord();
+});
+
+initTheme();
 recalculateFull();
 syncComposerWidth();
+updateAcceptState();
 mainInput.focus();

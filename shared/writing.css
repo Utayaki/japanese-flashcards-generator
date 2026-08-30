@@ -1,0 +1,175 @@
+.writing-line {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--reading-height) + var(--kanji-size) + 26px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 8px 18px;
+  overflow: visible;
+}
+
+.writing-line.has-stitches {
+  min-height: calc(var(--seam-rail) + var(--reading-height) + var(--kanji-size) + 26px);
+}
+
+.writing-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 11px;
+  height: 2px;
+  background: var(--rule);
+}
+
+.writing-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 3px;
+  width: 34px;
+  height: 3px;
+  background: var(--accent);
+}
+
+.character-unit {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: var(--kanji-slot);
+  display: grid;
+  grid-template-rows: var(--reading-height) auto;
+  justify-items: center;
+  align-items: end;
+}
+
+.has-reading {
+  width: max(var(--kanji-slot), var(--reading-max));
+}
+
+.kana-unit {
+  width: var(--kana-slot);
+}
+
+.reading-area {
+  width: 100%;
+  height: var(--reading-height);
+  display: grid;
+  place-items: end center;
+  padding-bottom: 6px;
+}
+
+.furigana-input,
+.furigana-text {
+  font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: var(--furigana-size);
+  font-weight: 520;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--ink);
+}
+
+.furigana-input {
+  width: var(--reading-width);
+  max-width: var(--reading-max);
+  min-width: 54px;
+  height: 30px;
+  border: 1px solid var(--control);
+  border-radius: 5px;
+  outline: none;
+  padding: 3px 6px 4px;
+  background: var(--input-wash);
+  caret-color: var(--accent);
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.furigana-input:hover {
+  border-color: var(--ink);
+}
+
+.furigana-input:focus {
+  border-color: var(--accent);
+  background: var(--input-focus-bg);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.stitch-group .furigana-input.is-spanning,
+.stitch-group .furigana-text.is-spanning {
+  width: calc(100% - 10px);
+  max-width: none;
+  min-width: 0;
+}
+
+.furigana-text {
+  display: block;
+  min-height: 1.2em;
+  padding: 0 2px 2px;
+}
+
+.reading-placeholder {
+  display: block;
+  width: 1px;
+  height: 30px;
+}
+
+.char-display {
+  display: block;
+  overflow: visible;
+  color: var(--ink);
+  font-family: var(--write-font);
+  font-weight: var(--write-weight);
+  line-height: 0.96;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.kanji-display {
+  width: var(--kanji-slot);
+  font-size: var(--kanji-size);
+}
+
+.kana-display {
+  width: var(--kana-slot);
+  font-size: var(--kana-size);
+}
+
+.stitch-group {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: calc(var(--kanji-slot) * var(--group-count));
+  display: grid;
+  grid-template-rows: var(--reading-height) auto;
+  justify-items: stretch;
+  align-items: end;
+  padding-top: var(--seam-rail);
+  overflow: visible;
+}
+
+.writing-line.is-frozen .stitch-group {
+  padding-top: 0;
+}
+
+.writing-line.is-frozen.has-stitches {
+  min-height: calc(var(--reading-height) + var(--kanji-size) + 26px);
+}
+
+.stitch-group .reading-area.stitched {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+.stitch-chars {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.stitch-chars .kanji-display {
+  width: var(--kanji-slot);
+}
