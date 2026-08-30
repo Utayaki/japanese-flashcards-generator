@@ -1,7 +1,4 @@
 import { renderWritingLine } from "/shared/render.js";
-import { initTheme } from "/shared/theme.js";
-
-initTheme();
 
 const gallery = document.getElementById("gallery");
 

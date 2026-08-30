@@ -6,7 +6,6 @@ import {
   isKanji,
 } from "/shared/japanese.js";
 import { renderWritingLine } from "/shared/render.js";
-import { initTheme } from "/shared/theme.js";
 
 const MAX_CHARACTERS = 12;
 const MIN_READING_WIDTH = 54;
@@ -815,7 +814,6 @@ acceptButton.addEventListener("click", () => {
   void acceptWord();
 });
 
-initTheme();
 recalculateFull();
 syncComposerWidth();
 updateAcceptState();

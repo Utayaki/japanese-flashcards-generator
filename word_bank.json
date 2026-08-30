@@ -1,0 +1,42 @@
+[
+  {
+    "id": "6a94b07b704b115df2f44c20",
+    "spelling": "運命",
+    "explanation": "variant of a fate",
+    "readingMappings": [
+      {
+        "kanji": "運命",
+        "kana": "さだめ"
+      }
+    ],
+    "createdAt": "2026-08-30T22:36:43.696635Z"
+  },
+  {
+    "id": "6a94b066704b115df2f44c1f",
+    "spelling": "運命",
+    "explanation": "other fate",
+    "readingMappings": [
+      {
+        "kanji": "運",
+        "kana": "うん"
+      },
+      {
+        "kanji": "命",
+        "kana": "めい"
+      }
+    ],
+    "createdAt": "2026-08-30T22:36:22.101862Z"
+  },
+  {
+    "id": "6a94b04a704b115df2f44c1c",
+    "spelling": "命",
+    "explanation": "Fate",
+    "readingMappings": [
+      {
+        "kanji": "命",
+        "kana": "いのち"
+      }
+    ],
+    "createdAt": "2026-08-30T22:35:54.710462Z"
+  }
+]

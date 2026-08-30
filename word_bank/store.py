@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
@@ -98,17 +99,29 @@ def _public_word(doc: dict[str, Any]) -> dict[str, Any]:
 
 
 class WordStore:
-    def __init__(self, data_dir: str) -> None:
+    def __init__(self, data_dir: str, dump_path: str | Path) -> None:
         Path(data_dir).mkdir(parents=True, exist_ok=True)
         self._lock = Lock()
+        self._dump_path = Path(dump_path)
         self._client = MongitaClientDisk(host=data_dir)
         self._words = self._client.japanese_learning.words
+        with self._lock:
+            self._dump_words_locked()
+
+    def _public_list_locked(self) -> list[dict[str, Any]]:
+        docs = list(self._words.find({}))
+        docs.sort(key=lambda doc: str(doc.get("createdAt", "")), reverse=True)
+        return [_public_word(doc) for doc in docs]
+
+    def _dump_words_locked(self) -> None:
+        payload = json.dumps(self._public_list_locked(), ensure_ascii=False, indent=2) + "\n"
+        tmp_path = self._dump_path.with_name(self._dump_path.name + ".tmp")
+        tmp_path.write_text(payload, encoding="utf-8")
+        tmp_path.replace(self._dump_path)
 
     def list_words(self) -> list[dict[str, Any]]:
         with self._lock:
-            docs = list(self._words.find({}))
-        docs.sort(key=lambda doc: str(doc.get("createdAt", "")), reverse=True)
-        return [_public_word(doc) for doc in docs]
+            return self._public_list_locked()
 
     def create_word(self, payload: dict[str, Any]) -> dict[str, Any]:
         parsed = parse_word_payload(payload)
@@ -116,6 +129,7 @@ class WordStore:
         with self._lock:
             result = self._words.insert_one(parsed)
             doc = self._words.find_one({"_id": result.inserted_id})
-        if doc is None:
-            raise ValidationError("failed to save word")
-        return _public_word(doc)
+            if doc is None:
+                raise ValidationError("failed to save word")
+            self._dump_words_locked()
+            return _public_word(doc)

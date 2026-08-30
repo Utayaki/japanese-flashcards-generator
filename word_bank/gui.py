@@ -19,8 +19,9 @@ TYPING_DIR = PROJECT_ROOT / "typing_engine" / "web"
 SHARED_DIR = PROJECT_ROOT / "shared"
 DEFAULT_DATA_DIR = PROJECT_ROOT / "data"
 DATA_DIR = Path(os.environ.get("JAPANESE_WORD_BANK_DIR", DEFAULT_DATA_DIR))
+DUMP_PATH = PROJECT_ROOT / "word_bank.json"
 
-STORE = WordStore(str(DATA_DIR))
+STORE = WordStore(str(DATA_DIR), dump_path=DUMP_PATH)
 
 
 class WordBankHandler(BaseHTTPRequestHandler):
