@@ -27,3 +27,20 @@ export function filterAllowed(text) {
 export function filterKana(text) {
   return [...text].filter(isKana).join("");
 }
+
+export function foldKana(text) {
+  let out = "";
+  for (const ch of String(text ?? "")) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x30a1 && code <= 0x30f6) {
+      out += String.fromCodePoint(code - 0x60);
+    } else {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+export function foldSearch(text) {
+  return foldKana(text).toLocaleLowerCase();
+}

@@ -43,3 +43,19 @@ def is_kanji(ch: str) -> bool:
 
 def is_allowed(ch: str) -> bool:
     return is_kana(ch) or is_kanji(ch)
+
+
+def fold_kana(text: str) -> str:
+    """Map katakana to hiragana so ねこ and ネコ compare equal. Length is preserved."""
+    out: list[str] = []
+    for ch in text:
+        code = ord(ch)
+        if 0x30A1 <= code <= 0x30F6:
+            out.append(chr(code - 0x60))
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def fold_search(text: str) -> str:
+    return fold_kana(text).casefold()

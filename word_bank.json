@@ -9,6 +9,7 @@
         "kana": "さだめ"
       }
     ],
+    "lexicalItemType": "nominal",
     "createdAt": "2026-08-30T22:36:43.696635Z"
   },
   {
@@ -25,6 +26,7 @@
         "kana": "めい"
       }
     ],
+    "lexicalItemType": "nominal",
     "createdAt": "2026-08-30T22:36:22.101862Z"
   },
   {
@@ -37,6 +39,7 @@
         "kana": "いのち"
       }
     ],
+    "lexicalItemType": "nominal",
     "createdAt": "2026-08-30T22:35:54.710462Z"
   }
 ]

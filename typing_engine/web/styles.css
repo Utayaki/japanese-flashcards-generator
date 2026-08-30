@@ -30,6 +30,37 @@ input:not(.main-input) {
   padding: clamp(28px, 5vh, 64px) clamp(24px, 6vw, 88px) clamp(38px, 6vh, 72px);
 }
 
+.writing-workspace.is-spelling-mode {
+  --reading-height: 0px;
+  --seam-rail: 0px;
+  --reading-max: var(--kanji-slot);
+}
+
+.writing-workspace.is-spelling-mode .writing-line {
+  min-height: calc(var(--kanji-size) + 26px);
+}
+
+.writing-workspace.is-spelling-mode .character-unit {
+  grid-template-rows: auto;
+}
+
+.writing-workspace.is-spelling-mode .character-unit.has-reading {
+  width: var(--kanji-slot);
+}
+
+.writing-workspace.is-readings-mode .composer-unit {
+  display: none;
+}
+
+.writing-workspace.is-readings-mode .writing-line,
+.writing-workspace.is-readings-mode .mirror-line {
+  cursor: default;
+}
+
+.engine-status:empty {
+  display: none;
+}
+
 .writing-stage {
   width: 100%;
   display: flex;

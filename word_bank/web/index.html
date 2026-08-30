@@ -12,15 +12,17 @@
     />
     <link rel="stylesheet" href="/shared/theme.css" />
     <link rel="stylesheet" href="/shared/writing.css" />
+    <link rel="stylesheet" href="/typing/styles.css" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="popup-styles.css" />
   </head>
   <body>
-    <main class="page-shell">
-      <header class="gallery-bar">
-        <a class="nominal-button" href="/typing/">Nominal</a>
-      </header>
-      <section class="gallery" id="gallery" aria-label="Saved words"></section>
+    <main id="app" class="page-shell" aria-live="polite">
+      <section class="home-panel">
+        <h1>Japanese Word Bank</h1>
+        <p class="muted">Loading…</p>
+      </section>
     </main>
-    <script type="module" src="gallery.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>

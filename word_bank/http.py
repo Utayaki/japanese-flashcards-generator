@@ -32,6 +32,27 @@ def read_json_body(handler: BaseHTTPRequestHandler, max_bytes: int) -> dict[str,
     return data
 
 
+def query_value(
+    query: dict[str, list[str]],
+    key: str,
+    *,
+    default: str | None = None,
+) -> str:
+    values = query.get(key)
+    if not values:
+        if default is not None:
+            return default
+        raise ApiError(f"missing query parameter: {key}")
+    return values[0]
+
+
+def send_redirect(handler: BaseHTTPRequestHandler, location: str, status: HTTPStatus = HTTPStatus.SEE_OTHER) -> None:
+    handler.send_response(status.value)
+    handler.send_header("Location", location)
+    handler.send_header("Content-Length", "0")
+    handler.end_headers()
+
+
 def send_json(
     handler: BaseHTTPRequestHandler,
     payload: dict[str, object],
