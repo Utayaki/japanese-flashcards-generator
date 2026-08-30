@@ -1,7 +1,8 @@
 import {
-  filterJapanese,
+  filterAllowed,
   filterKana,
-  isJapaneseChar,
+  isAllowed,
+  isKana,
   isKanji,
 } from "./japanese.js";
 
@@ -151,6 +152,15 @@ function showLimitNotice() {
   updateStatus();
 }
 
+function rejectInsert(event, allowed, composing) {
+  if (event.isComposing || composing) return;
+  if (event.inputType !== "insertText" || event.data == null) return;
+  if (![...event.data].every(allowed)) {
+    event.preventDefault();
+    syncComposerWidth();
+  }
+}
+
 function createCharColumn(entry) {
   const canHaveReading = isKanji(entry.char);
   const unit = document.createElement("div");
@@ -176,7 +186,7 @@ function createCharColumn(entry) {
 
     function commitValue(value) {
       const filtered = filterKana(value);
-      input.value = filtered;
+      if (filtered !== value) input.value = filtered;
       entry.furigana = filtered;
       input.style.setProperty("--reading-width", `${readingWidth(filtered)}px`);
     }
@@ -187,6 +197,22 @@ function createCharColumn(entry) {
         event.preventDefault();
         handleFuriganaArrow(entry.id, event.key === "ArrowLeft" ? -1 : 1);
       }
+    });
+    input.addEventListener("beforeinput", (event) => {
+      rejectInsert(event, isKana, composing);
+    });
+    input.addEventListener("paste", (event) => {
+      event.preventDefault();
+      if (composing) return;
+      const filtered = filterKana(event.clipboardData.getData("text"));
+      if (!filtered) return;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      const room = 5 - (input.value.length - (end - start));
+      const insert = [...filtered].slice(0, Math.max(0, room)).join("");
+      if (!insert) return;
+      input.setRangeText(insert, start, end, "end");
+      commitValue(input.value);
     });
     input.addEventListener("compositionstart", () => {
       composing = true;
@@ -336,7 +362,7 @@ function handleFuriganaArrow(id, direction) {
 }
 
 function commitMainInput(value) {
-  const chars = [...value].filter(isJapaneseChar);
+  const chars = [...value].filter(isAllowed);
   mainInput.value = "";
   if (chars.length === 0) {
     queueMicrotask(syncComposerWidth);
@@ -355,6 +381,10 @@ writingLine.addEventListener("click", focusMainInput);
 mirrorLine.addEventListener("click", focusMainInput);
 
 mainInput.addEventListener("click", (event) => event.stopPropagation());
+
+mainInput.addEventListener("beforeinput", (event) => {
+  rejectInsert(event, isAllowed, composingMain);
+});
 
 mainInput.addEventListener("compositionstart", () => {
   if (!isFull) composingMain = true;
@@ -391,7 +421,7 @@ mainInput.addEventListener("input", (event) => {
   }
   lastCompositionCommit = null;
 
-  if (!composingMain && [...value].some(isJapaneseChar)) {
+  if (!composingMain && [...value].some(isAllowed)) {
     commitMainInput(value);
     return;
   }
@@ -413,7 +443,7 @@ mainInput.addEventListener("keydown", (event) => {
 mainInput.addEventListener("paste", (event) => {
   event.preventDefault();
   if (isFull) return;
-  const pasted = filterJapanese(event.clipboardData.getData("text"));
+  const pasted = filterAllowed(event.clipboardData.getData("text"));
   if (!pasted) return;
   addCharacters([...pasted]);
   mainInput.value = "";
