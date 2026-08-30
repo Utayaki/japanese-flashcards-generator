@@ -22,7 +22,7 @@
   --kanji-slot: clamp(74px, 6.3vw, 96px);
   --kana-slot: calc(var(--kanji-slot) * 0.85);
   --reading-height: 42px;
-  --reading-max: 82px;
+  --reading-max: 140px;
   --seam-rail: 26px;
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;

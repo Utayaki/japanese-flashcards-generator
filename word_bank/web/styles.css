@@ -30,7 +30,6 @@
 }
 
 .lexical-item-type-grid button,
-.style-switcher button,
 .ghost,
 .danger {
   margin: 0;
@@ -48,9 +47,7 @@
 }
 
 .lexical-item-type-grid button.active,
-.lexical-item-type-grid button:hover,
-.style-switcher button.active,
-.style-switcher button:hover:not(:disabled) {
+.lexical-item-type-grid button:hover {
   background: var(--accent);
   color: var(--paper);
 }
@@ -94,18 +91,6 @@
   font-weight: 650;
 }
 
-.style-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.style-switcher button {
-  padding: 5px 10px 6px;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-}
-
 .entry-layout {
   display: grid;
   grid-template-areas:
@@ -124,6 +109,8 @@
 .search-popup {
   grid-area: popup;
   min-width: 0;
+  margin-top: 6px;
+  padding: 4px 0 0;
 }
 
 .status-row {
@@ -165,9 +152,13 @@
   letter-spacing: 0.04em;
 }
 
+.search-popup[hidden] {
+  display: none !important;
+}
+
 .search-results {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .search-result {
@@ -175,6 +166,13 @@
   gap: 10px;
   align-items: stretch;
   justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--control-light);
+  background: color-mix(in srgb, var(--paper), var(--paper-deep) 35%);
+}
+
+.search-result-main:hover .writing-line::after {
+  width: 28px;
 }
 
 .search-result-main {
@@ -244,14 +242,6 @@
 @media (max-width: 900px) {
   .home-panel {
     padding-inline: 24px;
-  }
-
-  .entry-layout[data-search-style="rail"] {
-    grid-template-areas:
-      "stage"
-      "popup"
-      "status" !important;
-    grid-template-columns: 1fr !important;
   }
 }
 

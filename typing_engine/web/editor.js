@@ -8,21 +8,22 @@ import {
 
 const MAX_CHARACTERS = 12;
 const MIN_READING_WIDTH = 54;
-const MAX_READING_WIDTH = 82;
-const SOLO_READING_MAX = 5;
+const MAX_READING_WIDTH = 140;
+const SOLO_READING_MAX = 10;
+const READING_BOX_KANA = 5;
 
 function seamKey(leftId, rightId) {
   return `${leftId}:${rightId}`;
 }
 
-function readingMaxLength(groupSize) {
-  return Math.max(SOLO_READING_MAX, groupSize * 4);
+function readingMaxLength() {
+  return SOLO_READING_MAX;
 }
 
 function readingWidth(value, cap = MAX_READING_WIDTH) {
-  const length = [...value].length;
+  const length = Math.min([...value].length, READING_BOX_KANA);
   if (length === 0) return Math.min(MIN_READING_WIDTH, cap);
-  return Math.min(cap, Math.max(MIN_READING_WIDTH, 18 + length * 13));
+  return Math.min(cap, Math.max(MIN_READING_WIDTH, 20 + length * 22));
 }
 
 function cssPx(style, name, fallback) {
@@ -348,8 +349,18 @@ export function createWritingEditor(root, options = {}) {
     }
   }
 
+  function syncReadingBox(input, value) {
+    input.style.setProperty("--reading-width", `${readingWidth(value)}px`);
+  }
+
+  function createFuriganaField() {
+    const input = document.createElement("textarea");
+    input.rows = 1;
+    input.wrap = "off";
+    return input;
+  }
+
   function bindFuriganaInput(input, headEntry, maxLength, spanning) {
-    input.type = "text";
     input.className = spanning ? "furigana-input is-spanning" : "furigana-input";
     input.maxLength = maxLength;
     input.dataset.headId = String(headEntry.id);
@@ -363,7 +374,7 @@ export function createWritingEditor(root, options = {}) {
     input.inputMode = "text";
     input.value = headEntry.furigana;
     if (!spanning) {
-      input.style.setProperty("--reading-width", `${readingWidth(headEntry.furigana)}px`);
+      syncReadingBox(input, headEntry.furigana);
     }
 
     let composing = false;
@@ -373,14 +384,16 @@ export function createWritingEditor(root, options = {}) {
       if (limited !== value) input.value = limited;
       const changed = headEntry.furigana !== limited;
       headEntry.furigana = limited;
-      if (!spanning) {
-        input.style.setProperty("--reading-width", `${readingWidth(limited)}px`);
-      }
+      if (!spanning) syncReadingBox(input, limited);
       if (changed) notifyChange();
     }
 
     input.addEventListener("click", (event) => event.stopPropagation());
     input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        return;
+      }
       if (!composing && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
         event.preventDefault();
         handleFuriganaArrow(headEntry.id, event.key === "ArrowLeft" ? -1 : 1);
@@ -411,12 +424,7 @@ export function createWritingEditor(root, options = {}) {
     });
     input.addEventListener("input", (event) => {
       if (!composing) commitValue(event.currentTarget.value);
-      else if (!spanning) {
-        input.style.setProperty(
-          "--reading-width",
-          `${readingWidth(event.currentTarget.value)}px`
-        );
-      }
+      else if (!spanning) syncReadingBox(input, event.currentTarget.value);
     });
 
     furiganaInputs.set(headEntry.id, input);
@@ -465,7 +473,7 @@ export function createWritingEditor(root, options = {}) {
       const readingArea = document.createElement("div");
       readingArea.className = "reading-area";
       if (canHaveReading) {
-        const input = document.createElement("input");
+        const input = createFuriganaField();
         bindFuriganaInput(input, entry, SOLO_READING_MAX, false);
         readingArea.append(input);
       } else {
@@ -506,9 +514,9 @@ export function createWritingEditor(root, options = {}) {
       readingArea.append(button);
     }
 
-    const input = document.createElement("input");
+    const input = createFuriganaField();
     input.setAttribute("aria-label", `Furigana for ${word}`);
-    bindFuriganaInput(input, head, readingMaxLength(n), true);
+    bindFuriganaInput(input, head, readingMaxLength(), true);
     readingArea.append(input);
 
     const chars = document.createElement("div");
@@ -567,7 +575,10 @@ export function createWritingEditor(root, options = {}) {
 
   function captureFuriganaFocus() {
     const active = document.activeElement;
-    if (!(active instanceof HTMLInputElement) || !active.classList.contains("furigana-input")) {
+    if (
+      (!(active instanceof HTMLInputElement) && !(active instanceof HTMLTextAreaElement)) ||
+      !active.classList.contains("furigana-input")
+    ) {
       return null;
     }
     return {
@@ -591,7 +602,7 @@ export function createWritingEditor(root, options = {}) {
   }
 
   function assignGroupReading(group, value) {
-    const limited = clampReading(value, readingMaxLength(group.members.length));
+    const limited = clampReading(value, readingMaxLength());
     group.members[0].furigana = limited;
     for (let i = 1; i < group.members.length; i += 1) {
       group.members[i].furigana = "";

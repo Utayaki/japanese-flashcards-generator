@@ -83,6 +83,12 @@
   padding: 3px 6px 4px;
   background: var(--input-wash);
   caret-color: var(--accent);
+  resize: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: block;
+  font: inherit;
+  white-space: nowrap;
   transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 

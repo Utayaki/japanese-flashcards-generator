@@ -1,4 +1,5 @@
-input:not(.main-input) {
+input:not(.main-input),
+textarea.furigana-input {
   font: inherit;
 }
 
@@ -46,6 +47,18 @@ input:not(.main-input) {
 
 .writing-workspace.is-spelling-mode .character-unit.has-reading {
   width: var(--kanji-slot);
+}
+
+.writing-workspace.is-readings-mode {
+  --reading-max: 140px;
+}
+
+.writing-workspace.is-readings-mode .character-unit.has-reading {
+  padding-top: var(--seam-rail);
+}
+
+.writing-workspace.is-readings-mode .writing-line {
+  min-height: calc(var(--seam-rail) + var(--reading-height) + var(--kanji-size) + 26px);
 }
 
 .writing-workspace.is-readings-mode .composer-unit {
@@ -325,13 +338,13 @@ input:not(.main-input) {
 
 .character-unit > .seam-control.is-open {
   left: 0;
-  top: calc(var(--reading-height) * 0.5);
+  top: calc(var(--seam-rail) * 0.5);
   transform: translate(-50%, -50%);
 }
 
 .stitch-group > .seam-control.is-open {
   left: 0;
-  top: calc(var(--seam-rail) + var(--reading-height) * 0.5);
+  top: calc(var(--seam-rail) * 0.5);
   transform: translate(-50%, -50%);
 }
 

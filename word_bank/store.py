@@ -15,7 +15,7 @@ from word_bank.japanese import fold_search, is_allowed, is_kana, is_kanji
 
 MAX_SPELLING = 12
 MAX_EXPLANATION = 2000
-MAX_MAPPING_KANA = 48
+MAX_MAPPING_KANA = 10
 DEFAULT_LEXICAL_ITEM_TYPE = "nominal"
 LEXICAL_ITEM_TYPES: dict[str, dict[str, str]] = {
     "nominal": {"button": "Nominal", "singular": "nominal", "plural": "nominals"},

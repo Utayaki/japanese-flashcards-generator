@@ -1,6 +1,6 @@
 import { createWritingEditor } from "/typing/editor.js";
 import { api } from "./api.js";
-import { app, SEARCH_STYLE_KEY, SEARCH_STYLES, state } from "./state.js";
+import { app, state } from "./state.js";
 import { esc } from "./utils.js";
 import {
   configureSearch,
@@ -11,14 +11,6 @@ import {
 } from "./search.js";
 
 let startEditor = null;
-
-const STYLE_LABELS = {
-  dropdown: "Dropdown",
-  cards: "Cards",
-  rail: "Rail",
-  overlay: "Overlay",
-  filmstrip: "Filmstrip",
-};
 
 export function configureHome(startEditorCallback) {
   startEditor = startEditorCallback;
@@ -57,16 +49,8 @@ export function renderHome() {
       <div id="entry-panel" class="${state.selectedType ? "" : "hidden"}">
         <div class="entry-heading">
           <h2>${selectedMeta ? esc(selectedMeta.button) : ""}</h2>
-          <div class="style-switcher" role="group" aria-label="Search popup style">
-            ${SEARCH_STYLES.map(
-              (style) =>
-                `<button type="button" data-search-style-option="${style}" class="${
-                  state.searchStyle === style ? "active" : ""
-                }">${STYLE_LABELS[style]}</button>`
-            ).join("")}
-          </div>
         </div>
-        <div class="entry-layout" data-search-style="${esc(state.searchStyle)}">
+        <div class="entry-layout">
           <div id="spelling-mount"></div>
           <div id="search-popup" class="search-popup" hidden>
             <div class="results-title">${
@@ -84,12 +68,6 @@ export function renderHome() {
 
   document.querySelectorAll("[data-type]").forEach((button) => {
     button.addEventListener("click", () => selectType(button.dataset.type));
-  });
-
-  document.querySelectorAll("[data-search-style-option]").forEach((button) => {
-    button.addEventListener("click", () => {
-      setSearchStyle(button.dataset.searchStyleOption);
-    });
   });
 
   document.getElementById("create-button")?.addEventListener("click", createDraft);
@@ -116,17 +94,6 @@ export function renderHome() {
     if (state.query.trim()) debounceSearch();
     queueMicrotask(() => state.spellingEditor?.focus());
   }
-}
-
-function setSearchStyle(style) {
-  if (!SEARCH_STYLES.includes(style)) return;
-  state.searchStyle = style;
-  localStorage.setItem(SEARCH_STYLE_KEY, style);
-  const layout = document.querySelector(".entry-layout");
-  if (layout) layout.dataset.searchStyle = style;
-  document.querySelectorAll("[data-search-style-option]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.searchStyleOption === style);
-  });
 }
 
 function selectType(type) {
