@@ -92,14 +92,18 @@ function buildShell(mode) {
   mirrorLine.className = "mirror-line";
   mirrorLine.setAttribute("aria-hidden", "true");
 
-  stage.append(writingLine, mirrorLine);
+  const fullReading = document.createElement("p");
+  fullReading.className = "full-reading";
+  fullReading.setAttribute("aria-live", "polite");
+
+  stage.append(writingLine, fullReading, mirrorLine);
 
   const statusMessage = document.createElement("p");
   statusMessage.className = "status-message engine-status";
   statusMessage.setAttribute("aria-live", "polite");
 
   workspace.append(stage, statusMessage);
-  return { workspace, writingLine, mirrorLine, composerUnit, statusMessage };
+  return { workspace, writingLine, mirrorLine, composerUnit, statusMessage, fullReading };
 }
 
 export function createWritingEditor(root, options = {}) {
@@ -120,7 +124,8 @@ export function createWritingEditor(root, options = {}) {
   let lastCompositionCommit = null;
   let destroyed = false;
 
-  const { workspace, writingLine, mirrorLine, composerUnit, statusMessage } = buildShell(mode);
+  const { workspace, writingLine, mirrorLine, composerUnit, statusMessage, fullReading } =
+    buildShell(mode);
   root.replaceChildren(workspace);
 
   const composerShell = composerUnit.querySelector(".composer-shell");
@@ -353,6 +358,27 @@ export function createWritingEditor(root, options = {}) {
     input.style.setProperty("--reading-width", `${readingWidth(value)}px`);
   }
 
+  function concatenatedReading() {
+    const groups = readingGroups();
+    const heads = new Set(groups.map((group) => group.members[0].id));
+    const byHead = new Map(groups.map((group) => [group.members[0].id, group]));
+    return characters
+      .map((entry) => {
+        if (!isKanji(entry.char)) return entry.char;
+        if (!heads.has(entry.id)) return "";
+        return byHead.get(entry.id).members[0].furigana || "";
+      })
+      .join("");
+  }
+
+  function syncFullReading() {
+    if (!showReadings) {
+      fullReading.textContent = "";
+      return;
+    }
+    fullReading.textContent = concatenatedReading();
+  }
+
   function createFuriganaField() {
     const input = document.createElement("textarea");
     input.rows = 1;
@@ -373,9 +399,7 @@ export function createWritingEditor(root, options = {}) {
     input.spellcheck = false;
     input.inputMode = "text";
     input.value = headEntry.furigana;
-    if (!spanning) {
-      syncReadingBox(input, headEntry.furigana);
-    }
+    syncReadingBox(input, headEntry.furigana);
 
     let composing = false;
 
@@ -384,7 +408,8 @@ export function createWritingEditor(root, options = {}) {
       if (limited !== value) input.value = limited;
       const changed = headEntry.furigana !== limited;
       headEntry.furigana = limited;
-      if (!spanning) syncReadingBox(input, limited);
+      syncReadingBox(input, limited);
+      syncFullReading();
       if (changed) notifyChange();
     }
 
@@ -424,7 +449,7 @@ export function createWritingEditor(root, options = {}) {
     });
     input.addEventListener("input", (event) => {
       if (!composing) commitValue(event.currentTarget.value);
-      else if (!spanning) syncReadingBox(input, event.currentTarget.value);
+      else syncReadingBox(input, event.currentTarget.value);
     });
 
     furiganaInputs.set(headEntry.id, input);
@@ -672,6 +697,7 @@ export function createWritingEditor(root, options = {}) {
     writingLine.classList.toggle("has-stitches", showReadings && stitches.size > 0);
 
     syncMirrorLine();
+    syncFullReading();
     recalculateFull();
     restoreFuriganaFocus(focusState);
     queueMicrotask(syncComposerWidth);

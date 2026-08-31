@@ -1,5 +1,32 @@
 import { isKanji } from "./japanese.js";
 
+function fullReadingFromWord(word) {
+  const spelling = [...(word.spelling ?? "")];
+  const mappings = Array.isArray(word.readingMappings) ? word.readingMappings : [];
+  const parts = [];
+  let i = 0;
+  let mappingIndex = 0;
+
+  while (i < spelling.length) {
+    const mapping = mappings[mappingIndex];
+    if (mapping && typeof mapping.kanji === "string") {
+      const kanjiChars = [...mapping.kanji];
+      const slice = spelling.slice(i, i + kanjiChars.length).join("");
+      if (slice === mapping.kanji && kanjiChars.length > 0) {
+        parts.push(typeof mapping.kana === "string" ? mapping.kana : "");
+        i += kanjiChars.length;
+        mappingIndex += 1;
+        continue;
+      }
+    }
+    const char = spelling[i];
+    if (!isKanji(char)) parts.push(char);
+    i += 1;
+  }
+
+  return parts.join("");
+}
+
 function createFrozenUnit(char, kana, kanji) {
   const unit = document.createElement("div");
   unit.className = `character-unit${kanji ? " has-reading" : " kana-unit"}`;
@@ -60,6 +87,11 @@ export function renderWritingLine(word) {
   let i = 0;
   let mappingIndex = 0;
   let hasStitches = false;
+
+  const fullReading = document.createElement("p");
+  fullReading.className = "full-reading";
+  fullReading.textContent = fullReadingFromWord(word);
+  line.append(fullReading);
 
   while (i < spelling.length) {
     const mapping = mappings[mappingIndex];

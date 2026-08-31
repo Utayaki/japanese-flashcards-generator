@@ -64,31 +64,34 @@
 
 .furigana-input,
 .furigana-text {
-  font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-family: "Klee One", "Noto Serif CJK JP", "Noto Serif JP", serif;
   font-size: var(--furigana-size);
-  font-weight: 520;
+  font-weight: 600;
   line-height: 1.2;
   text-align: center;
   color: var(--ink);
+  -webkit-text-stroke: 0.25px currentColor;
 }
 
 .furigana-input {
   width: var(--reading-width);
   max-width: var(--reading-max);
   min-width: 54px;
-  height: 30px;
+  height: 39px;
   border: 1px solid var(--control);
   border-radius: 5px;
   outline: none;
-  padding: 3px 6px 4px;
+  padding: 4px 8px;
   background: var(--input-wash);
   caret-color: var(--accent);
   resize: none;
   overflow-x: auto;
   overflow-y: hidden;
   display: block;
-  font: inherit;
   white-space: nowrap;
+  font-family: "Klee One", "Noto Serif CJK JP", "Noto Serif JP", serif;
+  font-size: var(--furigana-size);
+  font-weight: 600;
   transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
@@ -118,7 +121,27 @@
 .reading-placeholder {
   display: block;
   width: 1px;
-  height: 30px;
+  height: 39px;
+}
+
+.full-reading {
+  display: none;
+  margin: 0;
+}
+
+.writing-workspace.is-readings-mode .full-reading:not(:empty) {
+  display: block;
+  margin: 0 8px;
+  color: var(--mirror);
+  font-family: var(--mirror-font);
+  font-weight: var(--mirror-weight);
+  font-size: calc(var(--kana-size) * 0.72);
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+.writing-workspace.is-spelling-mode .full-reading {
+  display: none;
 }
 
 .char-display {

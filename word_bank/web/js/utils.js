@@ -28,7 +28,7 @@ export function highlightMatch(text, query) {
 export function highlightFurigana(line, query) {
   const needle = String(query || "").trim();
   if (!needle || !line) return;
-  for (const el of line.querySelectorAll(".furigana-text")) {
+  for (const el of line.querySelectorAll(".furigana-text, .full-reading")) {
     const raw = el.textContent || "";
     if (!raw) continue;
     const foldedText = foldSearch(raw);

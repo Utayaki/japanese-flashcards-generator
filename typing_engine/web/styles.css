@@ -1,5 +1,4 @@
-input:not(.main-input),
-textarea.furigana-input {
+input:not(.main-input):not(.furigana-input) {
   font: inherit;
 }
 
@@ -367,7 +366,6 @@ textarea.furigana-input {
   :root {
     --kanji-size: clamp(3.25rem, 8.6vw, 4.5rem);
     --kanji-slot: clamp(64px, 10vw, 82px);
-    --reading-height: 40px;
     --reading-max: 76px;
   }
 
@@ -381,7 +379,6 @@ textarea.furigana-input {
   :root {
     --kanji-size: 3.15rem;
     --kanji-slot: 62px;
-    --furigana-size: 0.78rem;
     --reading-max: 62px;
   }
 

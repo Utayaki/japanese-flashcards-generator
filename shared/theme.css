@@ -18,10 +18,10 @@
   --rule-lines: rgba(28, 22, 18, 0.045);
   --kanji-size: clamp(4rem, 6.1vw, 5.5rem);
   --kana-size: calc(var(--kanji-size) * 0.85);
-  --furigana-size: clamp(0.88rem, 1.2vw, 1.05rem);
+  --furigana-size: clamp(1.14rem, 1.56vw, 1.365rem);
   --kanji-slot: clamp(74px, 6.3vw, 96px);
   --kana-slot: calc(var(--kanji-slot) * 0.85);
-  --reading-height: 42px;
+  --reading-height: 55px;
   --reading-max: 140px;
   --seam-rail: 26px;
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",

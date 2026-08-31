@@ -1,5 +1,26 @@
 [
   {
+    "id": "6a94cdaf908f10bcf1fc630d",
+    "spelling": "紫式部",
+    "explanation": "one writer",
+    "readingMappings": [
+      {
+        "kanji": "紫",
+        "kana": "むらさき"
+      },
+      {
+        "kanji": "式",
+        "kana": "しき"
+      },
+      {
+        "kanji": "部",
+        "kana": "ぶ"
+      }
+    ],
+    "lexicalItemType": "nominal",
+    "createdAt": "2026-08-31T00:41:19.808931Z"
+  },
+  {
     "id": "6a94b07b704b115df2f44c20",
     "spelling": "運命",
     "explanation": "variant of a fate",

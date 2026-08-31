@@ -195,23 +195,28 @@
 }
 
 .search-explanation b,
-.furigana-text b {
+.furigana-text b,
+.full-reading b {
   color: var(--accent);
   font-weight: 700;
 }
 
 .search-result .writing-line {
   cursor: default;
+  width: max-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
   --kanji-size: 1.85rem;
   --kana-size: calc(var(--kanji-size) * 0.85);
   --furigana-size: 0.68rem;
   --kanji-slot: 36px;
   --kana-slot: calc(var(--kanji-slot) * 0.85);
-  --reading-height: 20px;
-  --reading-max: 42px;
+  --reading-height: 0px;
+  --reading-max: var(--kanji-slot);
   --seam-rail: 0px;
-  min-height: calc(var(--reading-height) + var(--kanji-size) + 16px);
-  padding-bottom: 10px;
+  min-height: calc(var(--kanji-size) + 16px);
+  padding: 0 4px 10px;
 }
 
 .search-result .writing-line::before {
@@ -223,6 +228,30 @@
   width: 16px;
   height: 2px;
   bottom: 2px;
+}
+
+.search-result .reading-area,
+.search-result .furigana-text,
+.search-result .reading-placeholder {
+  display: none;
+}
+
+.search-result .character-unit,
+.search-result .stitch-group {
+  grid-template-rows: auto;
+}
+
+.search-result .full-reading:not(:empty) {
+  display: block;
+  flex: 1 0 100%;
+  margin: 0 0 4px;
+  text-align: center;
+  font-family: "Klee One", "Noto Serif CJK JP", "Noto Serif JP", serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  color: var(--ink);
 }
 
 .load-all-button {
